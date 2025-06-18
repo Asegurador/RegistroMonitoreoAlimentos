@@ -882,6 +882,25 @@ async function saveReceta(e) {
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
     }
 }
+let SHEETS_DATA = { recetas: [] };
+
+async function cargarRecetas() {
+  try {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbw4Ao69CGvAPJvlb0O3-5Tp3h2EtuVPe8sYtQYydp6WzF86SofbPBbDLo_mfWa8fgPk1A/exec");
+    const data = await response.json();
+
+    if (data.success && data.recetas) {
+      SHEETS_DATA.recetas = data.recetas;
+      renderRecetas();
+      populateRecipeSelects(); // si quieres también cargar selects
+    } else {
+      alert("❌ No se pudieron cargar las recetas: " + data.message);
+    }
+  } catch (err) {
+    alert("❌ Error al cargar recetas: " + err.message);
+    console.error(err);
+  }
+}
 
 function renderRecetas() {
     const currentType = document.querySelector('.recipe-tab-btn.active').dataset.type;
