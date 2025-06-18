@@ -820,73 +820,54 @@
             });
         }
         
-        async function saveReceta(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const ingredientes = [];
-            
-            document.querySelectorAll('.ingredient-row').forEach(row => {
-                const cantidad = row.querySelector('.cantidad').value;
-                const unidad = row.querySelector('.unidad').value;
-                const ingrediente = row.querySelector('.ingrediente').value;
-                
-                if (cantidad && ingrediente) {
-                    ingredientes.push(`${cantidad}${unidad} ${ingrediente}`);
-                }
-            });
-            
-            if (ingredientes.length === 0) {
-                showToast('Debe agregar al menos un ingrediente', 'error');
-                return;
-            }
-            
-            const recetaData = { // Cambié el nombre de la variable de 'receta' a 'recetaData' para evitar confusión con el parametro de Apps Script
-                // El ID_Receta AHORA LO GENERARÁ EL APPS SCRIPT. 
-                // No uses generateRecetaId() aquí, ya que el script lo manejará.
-                Tipo: document.getElementById('tipoReceta').value,
-                Nombre: document.getElementById('nombreReceta').value,
-                Descripcion: document.getElementById('descripcionReceta').value,
-                Ingredientes_JSON: JSON.stringify(ingredientes),
-                Pasos_Preparacion: document.getElementById('pasosReceta').value
-            };
+async function saveReceta(e) {
+  e.preventDefault();
 
-            // INICIO: NUEVA LÓGICA PARA ENVIAR DATOS A GOOGLE APPS SCRIPT
-            try {
-                showToast('Guardando receta...', 'info'); // Mensaje mientras se guarda
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors', // Crucial para que funcione la comunicación
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    // Enviamos un objeto JSON con la acción y los datos de la receta
-                    body: JSON.stringify({ action: 'guardarReceta', receta: recetaData }) 
-                });
-                
-                const result = await response.json(); // Esperamos la respuesta JSON del Apps Script
-                
-                if (result.success) {
-                    // Si el Apps Script reporta éxito, entonces actualizamos el ID localmente
-                    // con el ID generado por el Apps Script y lo agregamos a nuestra data local.
-                    recetaData.ID_Receta = result.newRecetaId; 
-                    SHEETS_DATA.recetas.push(recetaData); 
-                    
-                    showToast('Receta guardada correctamente');
-                    toggleRecetaForm();
-                    renderRecetas();
-                    populateRecipeSelects();
-                    updateDashboard();
-                } else {
-                    // Si el Apps Script reporta un error
-                    showToast(`Error al guardar la receta: ${result.message}`, 'error');
-                    console.error('Error del Apps Script:', result.message);
-                }
-            } catch (error) {
-                // Si hay un error de red o de comunicación con el Apps Script
-                console.error('Error de conexión o en la solicitud a Apps Script:', error);
-                showToast('Error de conexión al guardar la receta. Revisa la consola.', 'error');
-            }
+  const ingredientes = [];
+  document.querySelectorAll('.ingredient-row').forEach(row => {
+    const cantidad = row.querySelector('.cantidad').value;
+    const unidad = row.querySelector('.unidad').value;
+    const nombre = row.querySelector('.ingrediente').value;
+    if (cantidad && nombre) ingredientes.push(`${cantidad}${unidad} ${nombre}`);
+  });
+
+  if (ingredientes.length === 0) {
+    showToast('Debe agregar al menos un ingrediente', 'error');
+    return;
+  }
+
+  const receta = {
+    Nombre: document.getElementById('nombreReceta').value,
+    Tipo: document.getElementById('tipoReceta').value,
+    Descripcion: document.getElementById('descripcionReceta').value,
+    Ingredientes_JSON: JSON.stringify(ingredientes),
+    Pasos_Preparacion: document.getElementById('pasosReceta').value
+  };
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'guardarReceta', receta })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast('Receta guardada correctamente');
+      toggleRecetaForm();
+      await loadRecetas(); // recarga desde Sheets
+      renderRecetas();
+      populateRecipeSelects();
+      updateDashboard();
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Error al conectar con el servidor', 'error');
+  }
+}
+
         
         function renderRecetas() {
             const currentType = document.querySelector('.recipe-tab-btn.active').dataset.type;
@@ -1009,58 +990,39 @@
         }
         
         async function saveRegistro(e) {
-            e.preventDefault();
-            
-            const registroData = { // Cambié el nombre de la variable de 'registro' a 'registroData'
-                Fecha: document.getElementById('fechaRegistro').value,
-                Jornada: document.getElementById('jornadaRegistro').value,
-                Receta_ID: document.getElementById('recetaSolida').value,
-                Bebida_ID: document.getElementById('bebidaRegistro').value,
-                Num_Participantes: parseInt(document.getElementById('participantesRegistro').value),
-                Valor_Estimado_Total: calculateTotalCost()
-            };
-            
-            // INICIO: NUEVA LÓGICA PARA ENVIAR DATOS A GOOGLE APPS SCRIPT
-            try {
-                showToast('Guardando registro...', 'info'); // Mensaje mientras se guarda
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'cors', // Crucial para que funcione la comunicación
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    // Enviamos un objeto JSON con la acción y los datos del registro
-                    body: JSON.stringify({ action: 'guardarRegistro', registro: registroData }) 
-                });
-                
-                const result = await response.json(); // Esperamos la respuesta JSON del Apps Script
-                
-                if (result.success) {
-                    // Si el Apps Script reporta éxito, agregamos el registro a nuestra data local.
-                    // No hay un ID_Registro que generar en Apps Script para este caso, solo se añade.
-                    SHEETS_DATA.registros.push(registroData); 
-                    
-                    showToast('Registro guardado correctamente');
-                    document.getElementById('registroForm').reset();
-                    document.getElementById('costPreview').classList.add('hidden');
-                    
-                    // Establecer fecha actual nuevamente después de guardar
-                    const today = new Date().toISOString().split('T')[0];
-                    document.getElementById('fechaRegistro').value = today;
-                    
-                    updateDashboard();
-                } else {
-                    // Si el Apps Script reporta un error
-                    showToast(`Error al guardar el registro: ${result.message}`, 'error');
-                    console.error('Error del Apps Script:', result.message);
-                }
-            } catch (error) {
-                // Si hay un error de red o de comunicación con el Apps Script
-                console.error('Error de conexión o en la solicitud a Apps Script:', error);
-                showToast('Error de conexión al guardar el registro. Revisa la consola.', 'error');
-            }
-            // FIN: NUEVA LÓGICA
-        }
+  e.preventDefault();
+
+  const registro = {
+    Fecha: document.getElementById('fechaRegistro').value,
+    Jornada: document.getElementById('jornadaRegistro').value,
+    Receta_ID: document.getElementById('recetaSolida').value,
+    Bebida_ID: document.getElementById('bebidaRegistro').value,
+    Num_Participantes: parseInt(document.getElementById('participantesRegistro').value),
+    Valor_Estimado_Total: calculateTotalCost()
+  };
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'guardarRegistro', registro })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showToast('Registro guardado correctamente');
+      document.getElementById('registroForm').reset();
+      document.getElementById('costPreview').classList.add('hidden');
+      await loadRegistros(); // recarga desde Sheets
+      updateDashboard();
+    } else {
+      showToast('Error: ' + data.message, 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Error al conectar con el servidor', 'error');
+  }
+}
         
         function calculateTotalCost() {
             const recetaId = document.getElementById('recetaSolida').value;
