@@ -1479,6 +1479,131 @@ async function retryOperation(operation, maxRetries = 3) {
     }
 }
 
+<script>
+// 🧠 Botón de eliminar receta
+function eliminarReceta(id) {
+  if (!confirm("¿Estás seguro de eliminar esta receta?")) return;
+
+  const formData = new FormData();
+  formData.append("action", "deleteReceta");
+  formData.append("id", id);
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("✅ Receta eliminada");
+      cargarRecetas();
+    } else {
+      alert("❌ No se pudo eliminar: " + data.message);
+    }
+  })
+  .catch(err => alert("❌ Error de red: " + err.message));
+}
+
+// 🧠 Botón de editar receta: muestra formulario con datos actuales
+function editarReceta(id) {
+  const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === id);
+  if (!receta) return alert("❌ Receta no encontrada");
+
+  document.getElementById('editId').value = receta.ID_Receta;
+  document.getElementById('editNombre').value = receta.Nombre;
+  document.getElementById('editTipo').value = receta.Tipo;
+  document.getElementById('editDescripcion').value = receta.Descripcion;
+  document.getElementById('editIngredientes').value = JSON.parse(receta.Ingredientes_JSON || '[]').join("\n");
+  document.getElementById('editPasos').value = receta.Pasos_Preparacion;
+  document.getElementById('editPrecio').value = receta.Precio || '';
+
+  document.getElementById('editModal').classList.remove('hidden');
+}
+
+function cerrarModalEdicion() {
+  document.getElementById('editModal').classList.add('hidden');
+}
+
+function guardarEdicion() {
+  const id = document.getElementById('editId').value;
+  const receta = {
+    Nombre: document.getElementById('editNombre').value,
+    Tipo: document.getElementById('editTipo').value,
+    Descripcion: document.getElementById('editDescripcion').value,
+    Ingredientes_JSON: JSON.stringify(
+      document.getElementById('editIngredientes').value.split("\n").filter(l => l.trim() !== "")
+    ),
+    Pasos_Preparacion: document.getElementById('editPasos').value,
+    Precio: document.getElementById('editPrecio').value
+  };
+
+  const formData = new FormData();
+  formData.append("action", "updateReceta");
+  formData.append("id", id);
+  formData.append("receta", JSON.stringify(receta));
+
+  fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert("✅ Receta actualizada correctamente");
+      cerrarModalEdicion();
+      cargarRecetas();
+    } else {
+      alert("❌ Error al actualizar: " + data.message);
+    }
+  })
+  .catch(err => alert("❌ Error de red: " + err.message));
+}
+</script>
+
+<!-- 🧾 Modal de edición -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center hidden">
+  <div class="bg-white p-6 rounded-xl shadow-xl max-w-lg w-full">
+    <h2 class="text-lg font-bold mb-4">Editar Receta</h2>
+    <input type="hidden" id="editId">
+
+    <label class="block mb-2 text-sm">Nombre:</label>
+    <input id="editNombre" class="w-full border rounded px-2 py-1 mb-3" type="text">
+
+    <label class="block mb-2 text-sm">Tipo:</label>
+    <select id="editTipo" class="w-full border rounded px-2 py-1 mb-3">
+      <option value="Solido">Sólido</option>
+      <option value="Bebida">Bebida</option>
+    </select>
+
+    <label class="block mb-2 text-sm">Descripción:</label>
+    <textarea id="editDescripcion" class="w-full border rounded px-2 py-1 mb-3"></textarea>
+
+    <label class="block mb-2 text-sm">Ingredientes (1 por línea):</label>
+    <textarea id="editIngredientes" class="w-full border rounded px-2 py-1 mb-3" rows="4"></textarea>
+
+    <label class="block mb-2 text-sm">Pasos de preparación:</label>
+    <textarea id="editPasos" class="w-full border rounded px-2 py-1 mb-3" rows="4"></textarea>
+
+    <label class="block mb-2 text-sm">Precio:</label>
+    <input id="editPrecio" class="w-full border rounded px-2 py-1 mb-3" type="number">
+
+    <div class="flex justify-end space-x-2">
+      <button onclick="cerrarModalEdicion()" class="bg-gray-300 text-black px-4 py-2 rounded">Cancelar</button>
+      <button onclick="guardarEdicion()" class="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🧩 En cada tarjeta de receta añade estos botones -->
+<!-- Dentro del .map() de renderRecetas() -->
+<button onclick="editarReceta('${receta.ID_Receta}')" class="text-blue-600 hover:text-blue-800 text-sm">
+  <i class="fas fa-edit"></i>
+</button>
+<button onclick="eliminarReceta('${receta.ID_Receta}')" class="text-red-600 hover:text-red-800 text-sm">
+  <i class="fas fa-trash"></i>
+</button>
+
+
 console.log('✅ Aplicación de Gestión de Recetas y Registros cargada correctamente');
     </script>
 </body>
