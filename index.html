@@ -882,8 +882,7 @@ async function saveReceta(e) {
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
     }
 }
-let SHEETS_DATA = { recetas: [] };
-
+SHEETS_DATA = SHEETS_DATA || { recetas: [] };
 async function cargarRecetas() {
   try {
     const response = await fetch(APPS_SCRIPT_URL);
