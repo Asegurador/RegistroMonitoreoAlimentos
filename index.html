@@ -424,6 +424,7 @@
     <script>
         // Variables globales
         let SHEETS_ID = '';
+        let APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXHSuQTc-57ytPmndfAqtVveK-eauQJztZ0ePQs8yCbbGkwWZDvRA2GITenWhJxqDt/exec';
         let SHEETS_DATA = {
             recetas: [],
             costos: [],
@@ -840,30 +841,52 @@
                 return;
             }
             
-            const receta = {
-                ID_Receta: generateRecetaId(),
+            const recetaData = { // Cambié el nombre de la variable de 'receta' a 'recetaData' para evitar confusión con el parametro de Apps Script
+                // El ID_Receta AHORA LO GENERARÁ EL APPS SCRIPT. 
+                // No uses generateRecetaId() aquí, ya que el script lo manejará.
                 Tipo: document.getElementById('tipoReceta').value,
                 Nombre: document.getElementById('nombreReceta').value,
                 Descripcion: document.getElementById('descripcionReceta').value,
                 Ingredientes_JSON: JSON.stringify(ingredientes),
                 Pasos_Preparacion: document.getElementById('pasosReceta').value
             };
-            
-            // En una implementación real, aquí enviarías los datos a Google Sheets
-            // Por ahora, simularemos guardándolo localmente
-            SHEETS_DATA.recetas.push(receta);
-            
-            showToast('Receta guardada correctamente');
-            toggleRecetaForm();
-            renderRecetas();
-            populateRecipeSelects();
-            updateDashboard();
-        }
-        
-        function generateRecetaId() {
-            const count = SHEETS_DATA.recetas.length + 1;
-            return `REC${count.toString().padStart(3, '0')}`;
-        }
+
+            // INICIO: NUEVA LÓGICA PARA ENVIAR DATOS A GOOGLE APPS SCRIPT
+            try {
+                showToast('Guardando receta...', 'info'); // Mensaje mientras se guarda
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors', // Crucial para que funcione la comunicación
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // Enviamos un objeto JSON con la acción y los datos de la receta
+                    body: JSON.stringify({ action: 'guardarReceta', receta: recetaData }) 
+                });
+                
+                const result = await response.json(); // Esperamos la respuesta JSON del Apps Script
+                
+                if (result.success) {
+                    // Si el Apps Script reporta éxito, entonces actualizamos el ID localmente
+                    // con el ID generado por el Apps Script y lo agregamos a nuestra data local.
+                    recetaData.ID_Receta = result.newRecetaId; 
+                    SHEETS_DATA.recetas.push(recetaData); 
+                    
+                    showToast('Receta guardada correctamente');
+                    toggleRecetaForm();
+                    renderRecetas();
+                    populateRecipeSelects();
+                    updateDashboard();
+                } else {
+                    // Si el Apps Script reporta un error
+                    showToast(`Error al guardar la receta: ${result.message}`, 'error');
+                    console.error('Error del Apps Script:', result.message);
+                }
+            } catch (error) {
+                // Si hay un error de red o de comunicación con el Apps Script
+                console.error('Error de conexión o en la solicitud a Apps Script:', error);
+                showToast('Error de conexión al guardar la receta. Revisa la consola.', 'error');
+            }
         
         function renderRecetas() {
             const currentType = document.querySelector('.recipe-tab-btn.active').dataset.type;
@@ -988,7 +1011,7 @@
         async function saveRegistro(e) {
             e.preventDefault();
             
-            const registro = {
+            const registroData = { // Cambié el nombre de la variable de 'registro' a 'registroData'
                 Fecha: document.getElementById('fechaRegistro').value,
                 Jornada: document.getElementById('jornadaRegistro').value,
                 Receta_ID: document.getElementById('recetaSolida').value,
@@ -997,18 +1020,46 @@
                 Valor_Estimado_Total: calculateTotalCost()
             };
             
-            // En una implementación real, aquí enviarías los datos a Google Sheets
-            SHEETS_DATA.registros.push(registro);
-            
-            showToast('Registro guardado correctamente');
-            document.getElementById('registroForm').reset();
-            document.getElementById('costPreview').classList.add('hidden');
-            
-            // Establecer fecha actual nuevamente
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fechaRegistro').value = today;
-            
-            updateDashboard();
+            // INICIO: NUEVA LÓGICA PARA ENVIAR DATOS A GOOGLE APPS SCRIPT
+            try {
+                showToast('Guardando registro...', 'info'); // Mensaje mientras se guarda
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors', // Crucial para que funcione la comunicación
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // Enviamos un objeto JSON con la acción y los datos del registro
+                    body: JSON.stringify({ action: 'guardarRegistro', registro: registroData }) 
+                });
+                
+                const result = await response.json(); // Esperamos la respuesta JSON del Apps Script
+                
+                if (result.success) {
+                    // Si el Apps Script reporta éxito, agregamos el registro a nuestra data local.
+                    // No hay un ID_Registro que generar en Apps Script para este caso, solo se añade.
+                    SHEETS_DATA.registros.push(registroData); 
+                    
+                    showToast('Registro guardado correctamente');
+                    document.getElementById('registroForm').reset();
+                    document.getElementById('costPreview').classList.add('hidden');
+                    
+                    // Establecer fecha actual nuevamente después de guardar
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('fechaRegistro').value = today;
+                    
+                    updateDashboard();
+                } else {
+                    // Si el Apps Script reporta un error
+                    showToast(`Error al guardar el registro: ${result.message}`, 'error');
+                    console.error('Error del Apps Script:', result.message);
+                }
+            } catch (error) {
+                // Si hay un error de red o de comunicación con el Apps Script
+                console.error('Error de conexión o en la solicitud a Apps Script:', error);
+                showToast('Error de conexión al guardar el registro. Revisa la consola.', 'error');
+            }
+            // FIN: NUEVA LÓGICA
         }
         
         function calculateTotalCost() {
