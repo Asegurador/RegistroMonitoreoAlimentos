@@ -1019,7 +1019,7 @@ async function saveRegistro(e) {
     try {
         // ✅ USAR FORM DATA PARA EVITAR CORS
         const formData = new FormData();
-        formData.append('action', 'guardarRegistro');
+        formData.append('action', 'saveRegistro');
         formData.append('registro', JSON.stringify(registro));
 
         const response = await fetch(APPS_SCRIPT_URL, {
