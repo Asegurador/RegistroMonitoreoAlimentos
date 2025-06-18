@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Nutricional - ONG</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-utensils mr-3"></i>
+                    Sistema Nutricional ONG
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <span id="userStatus" class="text-sm opacity-90">Configurando...</span>
+                    <button id="configBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                        <i class="fas fa-cog"></i> Configurar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-8">
+                <button class="nav-btn active px-6 py-4 border-b-2 border-blue-500 text-blue-600 font-medium" data-tab="dashboard">
+                    <i class="fas fa-chart-dashboard mr-2"></i>Dashboard
+                </button>
+                <button class="nav-btn px-6 py-4 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium" data-tab="recetas">
+                    <i class="fas fa-book mr-2"></i>Gestión de Recetas
+                </button>
+                <button class="nav-btn px-6 py-4 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium" data-tab="registro">
+                    <i class="fas fa-plus-circle mr-2"></i>Registrar Alimentación
+                </button>
+                <button class="nav-btn px-6 py-4 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium" data-tab="estadisticas">
+                    <i class="fas fa-chart-bar mr-2"></i>Estadísticas
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Modal de Configuración -->
+        <div id="configModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <h3 class="text-lg font-bold mb-4">Configurar Google Sheets</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">URL Pública de Google Sheets:</label>
+                    <input type="url" id="sheetsUrl" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                           placeholder="https://docs.google.com/spreadsheets/d/...">
+                    <p class="text-xs text-gray-500 mt-1">Asegúrate de que el documento esté público y tenga las hojas: Recetas, Costos_Unitarios, Registros_Consumo</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="saveConfig" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        <span class="save-text">Guardar</span>
+                        <div class="loading hidden"></div>
+                    </button>
+                    <button id="cancelConfig" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-utensils text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Recetas Totales</p>
+                            <p id="totalRecetas" class="text-2xl font-bold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fas fa-calendar-day text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Registros Hoy</p>
+                            <p id="registrosHoy" class="text-2xl font-bold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                            <i class="fas fa-dollar-sign text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Inversión Hoy</p>
+                            <p id="inversionHoy" class="text-2xl font-bold text-gray-900">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-4">Últimos Registros</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jornada</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receta</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bebida</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participantes</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ultimosRegistros" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Cargando registros...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gestión de Recetas Tab -->
+        <div id="recetas" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md">
+                <!-- Tabs para Sólidos y Bebidas -->
+                <div class="border-b border-gray-200">
+                    <nav class="flex space-x-8 px-6">
+                        <button class="recipe-tab-btn active py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600" data-type="Solido">
+                            <i class="fas fa-hamburger mr-2"></i>Recetas Sólidas
+                        </button>
+                        <button class="recipe-tab-btn py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700" data-type="Bebida">
+                            <i class="fas fa-glass-water mr-2"></i>Bebidas
+                        </button>
+                    </nav>
+                </div>
+                
+                <div class="p-6">
+                    <!-- Formulario de Nueva Receta -->
+                    <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+                        <h3 class="text-lg font-bold mb-4">
+                            <span id="formTitle">Nueva Receta Sólida</span>
+                            <button id="toggleForm" class="float-right text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                                <i class="fas fa-plus mr-1"></i>Agregar
+                            </button>
+                        </h3>
+                        
+                        <form id="recetaForm" class="hidden space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                                    <input type="text" id="nombreReceta" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tipo:</label>
+                                    <select id="tipoReceta" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="Solido">Sólido</option>
+                                        <option value="Bebida">Bebida</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Descripción:</label>
+                                <textarea id="descripcionReceta" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ingredientes:</label>
+                                <div id="ingredientesContainer" class="space-y-2">
+                                    <div class="ingredient-row flex space-x-2">
+                                        <input type="number" placeholder="Cantidad" class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm" min="0" step="0.1">
+                                        <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                            <option value="g">g</option>
+                                            <option value="kg">kg</option>
+                                            <option value="ml">ml</option>
+                                            <option value="litro">litro</option>
+                                            <option value="unidad">unidad</option>
+                                            <option value="taza">taza</option>
+                                            <option value="cucharada">cucharada</option>
+                                        </select>
+                                        <input type="text" placeholder="Nombre del ingrediente" class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
+                                        <button type="button" class="remove-ingredient text-red-500 hover:text-red-700 px-2">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="button" id="addIngredient" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-plus mr-1"></i>Agregar Ingrediente
+                                </button>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Pasos de Preparación:</label>
+                                <textarea id="pasosReceta" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1. Primer paso...&#10;2. Segundo paso..."></textarea>
+                            </div>
+                            
+                            <div class="flex space-x-3">
+                                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                                    <i class="fas fa-save mr-1"></i>Guardar Receta
+                                </button>
+                                <button type="button" id="cancelReceta" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Lista de Recetas -->
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">
+                            <span id="listTitle">Recetas Sólidas Registradas</span>
+                            <span id="recetasCount" class="text-sm text-gray-500 ml-2">(0)</span>
+                        </h3>
+                        <div id="recetasList" class="space-y-3">
+                            <div class="text-center py-8 text-gray-500">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Cargando recetas...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registro de Alimentación Tab -->
+        <div id="registro" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-6">Registrar Alimentación Diaria</h3>
+                
+                <form id="registroForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha:</label>
+                            <input type="date" id="fechaRegistro" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jornada:</label>
+                            <select id="jornadaRegistro" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Seleccionar jornada...</option>
+                                <option value="Mañana">Mañana</option>
+                                <option value="Tarde">Tarde</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Receta Sólida:</label>
+                            <select id="recetaSolida" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Cargando recetas...</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bebida:</label>
+                            <select id="bebidaRegistro" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Cargando bebidas...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad de Participantes:</label>
+                        <input type="number" id="participantesRegistro" class="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" min="1" required>
+                    </div>
+                    
+                    <!-- Vista Previa del Costo -->
+                    <div id="costPreview" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h4 class="font-medium text-blue-900 mb-2">Vista Previa del Costo:</h4>
+                        <div class="text-sm text-blue-800">
+                            <div>Costo por porción (estimado): <span id="costoPorPorcion" class="font-medium">$0</span></div>
+                            <div>Total para <span id="totalParticipantes">0</span> participantes: <span id="costoTotal" class="font-bold text-lg">$0</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 font-medium">
+                            <i class="fas fa-save mr-2"></i>Guardar Registro
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Estadísticas Tab -->
+        <div id="estadisticas" class="tab-content hidden">
+            <div class="space-y-6">
+                <!-- Filtros -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold mb-4">Filtros de Análisis</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Desde:</label>
+                            <input type="date" id="fechaDesde" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Hasta:</label>
+                            <input type="date" id="fechaHasta" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-end">
+                            <button id="aplicarFiltros" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                                <i class="fas fa-filter mr-1"></i>Aplicar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resumen Estadístico -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="statTotalRegistros">0</div>
+                            <div class="text-sm text-gray-600">Total Registros</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600" id="statTotalParticipantes">0</div>
+                            <div class="text-sm text-gray-600">Total Participantes</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600" id="statInversionTotal">$0</div>
+                            <div class="text-sm text-gray-600">Inversión Total</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600" id="statPromedioParticipantes">0</div>
+                            <div class="text-sm text-gray-600">Promedio Participantes</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabla Detallada -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold mb-4">Registros Detallados</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jornada</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receta</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bebida</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participantes</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="estadisticasTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                        <i class="fas fa-chart-bar text-2xl mb-2 block"></i>
+                                        Selecciona un rango de fechas para ver las estadísticas
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+            <span id="toastMessage">Mensaje</span>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let SHEETS_ID = '';
+        let SHEETS_DATA = {
+            recetas: [],
+            costos: [],
+            registros: []
+        };
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+            
+            // Establecer fecha actual por defecto
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaRegistro').value = today;
+            document.getElementById('fechaHasta').value = today;
+            
+            // Fecha desde: 30 días atrás
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            document.getElementById('fechaDesde').value = thirtyDaysAgo.toISOString().split('T')[0];
+        });
+        
+        function initializeApp() {
+            const savedUrl = localStorage.getItem('sheetsUrl');
+            if (savedUrl) {
+                SHEETS_ID = extractSheetId(savedUrl);
+                updateUserStatus('Conectado');
+                loadAllData();
+            } else {
+                showConfigModal();
+            }
+        }
+        
+        function setupEventListeners() {
+            // Navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
+            });
+            
+            // Configuración
+            document.getElementById('configBtn').addEventListener('click', showConfigModal);
+            document.getElementById('saveConfig').addEventListener('click', saveConfiguration);
+            document.getElementById('cancelConfig').addEventListener('click', hideConfigModal);
+            
+            // Recetas
+            document.getElementById('toggleForm').addEventListener('click', toggleRecetaForm);
+            document.getElementById('recetaForm').addEventListener('submit', saveReceta);
+            document.getElementById('cancelReceta').addEventListener('click', toggleRecetaForm);
+            document.getElementById('addIngredient').addEventListener('click', addIngredientRow);
+            
+            // Tabs de recetas
+            document.querySelectorAll('.recipe-tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => switchRecipeTab(e.target.dataset.type));
+            });
+            
+            // Registro
+            document.getElementById('registroForm').addEventListener('submit', saveRegistro);
+            document.getElementById('participantesRegistro').addEventListener('input', updateCostPreview);
+            document.getElementById('recetaSolida').addEventListener('change', updateCostPreview);
+            document.getElementById('bebidaRegistro').addEventListener('change', updateCostPreview);
+            
+            // Estadísticas
+            document.getElementById('aplicarFiltros').addEventListener('click', applyFilters);
+        }
+        
+        // Funciones de configuración
+        function showConfigModal() {
+            document.getElementById('configModal').classList.remove('hidden');
+            const savedUrl = localStorage.getItem('sheetsUrl');
+            if (savedUrl) {
+                document.getElementById('sheetsUrl').value = savedUrl;
+            }
+        }
+        
+        function hideConfigModal() {
+            document.getElementById('configModal').classList.add('hidden');
+        }
+        
+        async function saveConfiguration() {
+            const url = document.getElementById('sheetsUrl').value.trim();
+            if (!url) {
+                showToast('Por favor ingresa una URL válida', 'error');
+                return;
+            }
+            
+            const sheetId = extractSheetId(url);
+            if (!sheetId) {
+                showToast('URL de Google Sheets no válida', 'error');
+                return;
+            }
+            
+            showLoading('saveConfig');
+            
+            try {
+                // Verificar que las hojas existan
+                await testSheetsConnection(sheetId);
+                
+                SHEETS_ID = sheetId;
+                localStorage.setItem('sheetsUrl', url);
+                updateUserStatus('Conectado');
+                hideConfigModal();
+                showToast('Configuración guardada correctamente');
+                await loadAllData();
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Error al conectar con Google Sheets. Verifica la URL y que el documento sea público.', 'error');
+            } finally {
+                hideLoading('saveConfig');
+            }
+        }
+        
+        function extractSheetId(url) {
+            const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : null;
+        }
+        
+        async function testSheetsConnection(sheetId) {
+            const testUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Recetas`;
+            const response = await fetch(testUrl);
+            if (!response.ok) {
+                throw new Error('No se puede acceder al documento');
+            }
+            const text = await response.text();
+            if (!text.includes('google.visualization.Query.setResponse')) {
+                throw new Error('Formato de respuesta inválido');
+            }
+        }
+        
+        // Funciones de datos
+        async function loadAllData() {
+            try {
+                updateUserStatus('Cargando datos...');
+                await Promise.all([
+                    loadRecetas(),
+                    loadCostos(),
+                    loadRegistros()
+                ]);
+                updateUserStatus('Conectado');
+                updateDashboard();
+                populateRecipeSelects();
+                renderRecetas();
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                updateUserStatus('Error de conexión');
+                showToast('Error al cargar los datos', 'error');
+            }
+        }
+        
+        async function loadRecetas() {
+            const data = await fetchSheetData('Recetas');
+            SHEETS_DATA.recetas = data;
+        }
+        
+        async function loadCostos() {
+            const data = await fetchSheetData('Costos_Unitarios');
+            SHEETS_DATA.costos = data;
+        }
+        
+        async function loadRegistros() {
+            const data = await fetchSheetData('Registros_Consumo');
+            SHEETS_DATA.registros = data;
+        }
+        
+        async function fetchSheetData(sheetName) {
+            if (!SHEETS_ID) return [];
+            
+            const url = `https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+            
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                // Extraer JSON de la respuesta de Google Visualization API
+                const jsonText = text.substring(47).slice(0, -2);
+                const data = JSON.parse(jsonText);
+                
+                if (!data.table || !data.table.rows) return [];
+                
+                // Convertir a formato más manejable
+                const headers = data.table.cols.map(col => col.label || col.id);
+                const rows = data.table.rows.map(row => {
+                    const obj = {};
+                    headers.forEach((header, index) => {
+                        const cell = row.c[index];
+                        obj[header] = cell ? (cell.v !== null ? cell.v : '') : '';
+                    });
+                    return obj;
+                });
+                
+                return rows.filter(row => Object.values(row).some(val => val !== ''));
+                
+            } catch (error) {
+                console.error(`Error loading ${sheetName}:`, error);
+                return [];
+            }
+        }
+        
+        // Funciones de interfaz
+        function switchTab(tabName) {
+            // Actualizar botones de navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-600');
+            });
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active', 'border-blue-500', 'text-blue-600');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.remove('border-transparent', 'text-gray-600');
+            
+            // Mostrar/ocultar contenido
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(tabName).classList.remove('hidden');
+            document.getElementById(tabName).classList.add('fade-in');
+        }
+        
+        function updateUserStatus(status) {
+            document.getElementById('userStatus').textContent = status;
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // Cambiar color según tipo
+            const toastDiv = toast.querySelector('div');
+            toastDiv.className = type === 'error' 
+                ? 'bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg'
+                : 'bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg';
+            
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+        
+        function showLoading(buttonId) {
+            const button = document.getElementById(buttonId);
+            button.querySelector('.save-text').style.display = 'none';
+            button.querySelector('.loading').classList.remove('hidden');
+            button.disabled = true;
+        }
+        
+        function hideLoading(buttonId) {
+            const button = document.getElementById(buttonId);
+            button.querySelector('.save-text').style.display = 'inline';
+            button.querySelector('.loading').classList.add('hidden');
+            button.disabled = false;
+        }
+        
+        // Dashboard functions
+        function updateDashboard() {
+            const totalRecetas = SHEETS_DATA.recetas.length;
+            const today = new Date().toISOString().split('T')[0];
+            const registrosHoy = SHEETS_DATA.registros.filter(r => r.Fecha === today);
+            const inversionHoy = registrosHoy.reduce((sum, r) => sum + (parseFloat(r.Valor_Estimado_Total) || 0), 0);
+            
+            document.getElementById('totalRecetas').textContent = totalRecetas;
+            document.getElementById('registrosHoy').textContent = registrosHoy.length;
+            document.getElementById('inversionHoy').textContent = formatCurrency(inversionHoy);
+            
+            // Últimos registros
+            renderUltimosRegistros();
+        }
+        
+        function renderUltimosRegistros() {
+            const tbody = document.getElementById('ultimosRegistros');
+            const ultimos = SHEETS_DATA.registros
+                .sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha))
+                .slice(0, 10);
+            
+            if (ultimos.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No hay registros disponibles
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = ultimos.map(registro => {
+                const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === registro.Receta_ID);
+                const bebida = SHEETS_DATA.recetas.find(r => r.ID_Receta === registro.Bebida_ID);
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(registro.Fecha)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.Jornada}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${receta ? receta.Nombre : registro.Receta_ID}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${bebida ? bebida.Nombre : registro.Bebida_ID}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.Num_Participantes}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatCurrency(registro.Valor_Estimado_Total)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Recetas functions
+        function switchRecipeTab(type) {
+            // Actualizar tabs
+            document.querySelectorAll('.recipe-tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.querySelector(`[data-type="${type}"]`).classList.add('active', 'border-blue-500', 'text-blue-600');
+            document.querySelector(`[data-type="${type}"]`).classList.remove('border-transparent', 'text-gray-500');
+            
+            // Actualizar formulario
+            document.getElementById('tipoReceta').value = type;
+            document.getElementById('formTitle').textContent = type === 'Solido' ? 'Nueva Receta Sólida' : 'Nueva Bebida';
+            document.getElementById('listTitle').textContent = type === 'Solido' ? 'Recetas Sólidas Registradas' : 'Bebidas Registradas';
+            
+            renderRecetas();
+        }
+        
+        function toggleRecetaForm() {
+            const form = document.getElementById('recetaForm');
+            const button = document.getElementById('toggleForm');
+            
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                button.innerHTML = '<i class="fas fa-minus mr-1"></i>Cancelar';
+                clearRecetaForm();
+            } else {
+                form.classList.add('hidden');
+                button.innerHTML = '<i class="fas fa-plus mr-1"></i>Agregar';
+            }
+        }
+        
+        function clearRecetaForm() {
+            document.getElementById('recetaForm').reset();
+            const container = document.getElementById('ingredientesContainer');
+            container.innerHTML = `
+                <div class="ingredient-row flex space-x-2">
+                    <input type="number" placeholder="Cantidad" class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm" min="0" step="0.1">
+                    <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                        <option value="g">g</option>
+                        <option value="kg">kg</option>
+                        <option value="ml">ml</option>
+                        <option value="litro">litro</option>
+                        <option value="unidad">unidad</option>
+                        <option value="taza">taza</option>
+                        <option value="cucharada">cucharada</option>
+                    </select>
+                    <input type="text" placeholder="Nombre del ingrediente" class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
+                    <button type="button" class="remove-ingredient text-red-500 hover:text-red-700 px-2">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            setupIngredientEvents();
+        }
+        
+        function addIngredientRow() {
+            const container = document.getElementById('ingredientesContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'ingredient-row flex space-x-2';
+            newRow.innerHTML = `
+                <input type="number" placeholder="Cantidad" class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm" min="0" step="0.1">
+                <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="litro">litro</option>
+                    <option value="unidad">unidad</option>
+                    <option value="taza">taza</option>
+                    <option value="cucharada">cucharada</option>
+                </select>
+                <input type="text" placeholder="Nombre del ingrediente" class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
+                <button type="button" class="remove-ingredient text-red-500 hover:text-red-700 px-2">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(newRow);
+            setupIngredientEvents();
+        }
+        
+        function setupIngredientEvents() {
+            document.querySelectorAll('.remove-ingredient').forEach(btn => {
+                btn.onclick = function() {
+                    if (document.querySelectorAll('.ingredient-row').length > 1) {
+                        this.closest('.ingredient-row').remove();
+                    }
+                };
+            });
+        }
+        
+        async function saveReceta(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const ingredientes = [];
+            
+            document.querySelectorAll('.ingredient-row').forEach(row => {
+                const cantidad = row.querySelector('.cantidad').value;
+                const unidad = row.querySelector('.unidad').value;
+                const ingrediente = row.querySelector('.ingrediente').value;
+                
+                if (cantidad && ingrediente) {
+                    ingredientes.push(`${cantidad}${unidad} ${ingrediente}`);
+                }
+            });
+            
+            if (ingredientes.length === 0) {
+                showToast('Debe agregar al menos un ingrediente', 'error');
+                return;
+            }
+            
+            const receta = {
+                ID_Receta: generateRecetaId(),
+                Tipo: document.getElementById('tipoReceta').value,
+                Nombre: document.getElementById('nombreReceta').value,
+                Descripcion: document.getElementById('descripcionReceta').value,
+                Ingredientes_JSON: JSON.stringify(ingredientes),
+                Pasos_Preparacion: document.getElementById('pasosReceta').value
+            };
+            
+            // En una implementación real, aquí enviarías los datos a Google Sheets
+            // Por ahora, simularemos guardándolo localmente
+            SHEETS_DATA.recetas.push(receta);
+            
+            showToast('Receta guardada correctamente');
+            toggleRecetaForm();
+            renderRecetas();
+            populateRecipeSelects();
+            updateDashboard();
+        }
+        
+        function generateRecetaId() {
+            const count = SHEETS_DATA.recetas.length + 1;
+            return `REC${count.toString().padStart(3, '0')}`;
+        }
+        
+        function renderRecetas() {
+            const currentType = document.querySelector('.recipe-tab-btn.active').dataset.type;
+            const recetas = SHEETS_DATA.recetas.filter(r => r.Tipo === currentType);
+            const container = document.getElementById('recetasList');
+            const countSpan = document.getElementById('recetasCount');
+            
+            countSpan.textContent = `(${recetas.length})`;
+            
+            if (recetas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-utensils text-4xl mb-4 opacity-50"></i>
+                        <p>No hay ${currentType === 'Solido' ? 'recetas sólidas' : 'bebidas'} registradas</p>
+                        <p class="text-sm">Usa el botón "Agregar" para crear una nueva</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = recetas.map(receta => {
+                const ingredientes = JSON.parse(receta.Ingredientes_JSON || '[]');
+                return `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h4 class="font-medium text-gray-900">${receta.Nombre}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${receta.Descripcion}</p>
+                                <div class="mt-2">
+                                    <span class="text-xs font-medium text-gray-500">Ingredientes:</span>
+                                    <div class="text-sm text-gray-700 mt-1">
+                                        ${ingredientes.slice(0, 3).join(', ')}
+                                        ${ingredientes.length > 3 ? `... (+${ingredientes.length - 3} más)` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <button class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-600 hover:text-red-800 text-sm">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function populateRecipeSelects() {
+            const solidasSelect = document.getElementById('recetaSolida');
+            const bebidasSelect = document.getElementById('bebidaRegistro');
+            
+            const solidas = SHEETS_DATA.recetas.filter(r => r.Tipo === 'Solido');
+            const bebidas = SHEETS_DATA.recetas.filter(r => r.Tipo === 'Bebida');
+            
+            solidasSelect.innerHTML = '<option value="">Seleccionar receta...</option>' +
+                solidas.map(r => `<option value="${r.ID_Receta}">${r.Nombre}</option>`).join('');
+            
+            bebidasSelect.innerHTML = '<option value="">Seleccionar bebida...</option>' +
+                bebidas.map(r => `<option value="${r.ID_Receta}">${r.Nombre}</option>`).join('');
+        }
+        
+        // Registro functions
+        function updateCostPreview() {
+            const recetaId = document.getElementById('recetaSolida').value;
+            const bebidaId = document.getElementById('bebidaRegistro').value;
+            const participantes = parseInt(document.getElementById('participantesRegistro').value) || 0;
+            
+            if (!recetaId || !bebidaId || !participantes) {
+                document.getElementById('costPreview').classList.add('hidden');
+                return;
+            }
+            
+            const costoReceta = calculateRecipeCost(recetaId);
+            const costoBebida = calculateRecipeCost(bebidaId);
+            const costoPorPorcion = costoReceta + costoBebida;
+            const costoTotal = costoPorPorcion * participantes;
+            
+            document.getElementById('costoPorPorcion').textContent = formatCurrency(costoPorPorcion);
+            document.getElementById('totalParticipantes').textContent = participantes;
+            document.getElementById('costoTotal').textContent = formatCurrency(costoTotal);
+            document.getElementById('costPreview').classList.remove('hidden');
+        }
+        
+        function calculateRecipeCost(recetaId) {
+            const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === recetaId);
+            if (!receta) return 0;
+            
+            const ingredientes = JSON.parse(receta.Ingredientes_JSON || '[]');
+            let costoTotal = 0;
+            
+            ingredientes.forEach(ingredienteStr => {
+                // Parsear el string del ingrediente (ej: "100g Harina de Maíz")
+                const match = ingredienteStr.match(/^(\d+(?:\.\d+)?)(.*?)\s+(.+)$/);
+                if (match) {
+                    const cantidad = parseFloat(match[1]);
+                    const unidad = match[2];
+                    const nombre = match[3];
+                    
+                    // Buscar costo en la tabla de costos
+                    const costo = SHEETS_DATA.costos.find(c => 
+                        c.Ingrediente_Base && c.Ingrediente_Base.toLowerCase().includes(nombre.toLowerCase())
+                    );
+                    
+                    if (costo) {
+                        // Conversión simple de unidades (esto se puede mejorar)
+                        let factor = 1;
+                        if (unidad === 'g' && costo.Unidad_Base === 'kg') factor = 0.001;
+                        if (unidad === 'ml' && costo.Unidad_Base === 'litro') factor = 0.001;
+                        
+                        const costoIngrediente = (cantidad * factor * parseFloat(costo.Costo_Por_Unidad || 0));
+                        costoTotal += costoIngrediente;
+                    }
+                }
+            });
+            
+            return costoTotal;
+        }
+        
+        async function saveRegistro(e) {
+            e.preventDefault();
+            
+            const registro = {
+                Fecha: document.getElementById('fechaRegistro').value,
+                Jornada: document.getElementById('jornadaRegistro').value,
+                Receta_ID: document.getElementById('recetaSolida').value,
+                Bebida_ID: document.getElementById('bebidaRegistro').value,
+                Num_Participantes: parseInt(document.getElementById('participantesRegistro').value),
+                Valor_Estimado_Total: calculateTotalCost()
+            };
+            
+            // En una implementación real, aquí enviarías los datos a Google Sheets
+            SHEETS_DATA.registros.push(registro);
+            
+            showToast('Registro guardado correctamente');
+            document.getElementById('registroForm').reset();
+            document.getElementById('costPreview').classList.add('hidden');
+            
+            // Establecer fecha actual nuevamente
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaRegistro').value = today;
+            
+            updateDashboard();
+        }
+        
+        function calculateTotalCost() {
+            const recetaId = document.getElementById('recetaSolida').value;
+            const bebidaId = document.getElementById('bebidaRegistro').value;
+            const participantes = parseInt(document.getElementById('participantesRegistro').value) || 0;
+            
+            const costoReceta = calculateRecipeCost(recetaId);
+            const costoBebida = calculateRecipeCost(bebidaId);
+            
+            return (costoReceta + costoBebida) * participantes;
+        }
+        
+        // Estadísticas functions
+        function applyFilters() {
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+            
+            if (!fechaDesde || !fechaHasta) {
+                showToast('Selecciona ambas fechas', 'error');
+                return;
+            }
+            
+            const registrosFiltrados = SHEETS_DATA.registros.filter(r => {
+                const fecha = new Date(r.Fecha);
+                const desde = new Date(fechaDesde);
+                const hasta = new Date(fechaHasta);
+                return fecha >= desde && fecha <= hasta;
+            });
+            
+            updateEstadisticas(registrosFiltrados);
+            renderEstadisticasTable(registrosFiltrados);
+        }
+        
+        function updateEstadisticas(registros) {
+            const totalRegistros = registros.length;
+            const totalParticipantes = registros.reduce((sum, r) => sum + (parseInt(r.Num_Participantes) || 0), 0);
+            const inversionTotal = registros.reduce((sum, r) => sum + (parseFloat(r.Valor_Estimado_Total) || 0), 0);
+            const promedioParticipantes = totalRegistros > 0 ? Math.round(totalParticipantes / totalRegistros) : 0;
+            
+            document.getElementById('statTotalRegistros').textContent = totalRegistros;
+            document.getElementById('statTotalParticipantes').textContent = totalParticipantes;
+            document.getElementById('statInversionTotal').textContent = formatCurrency(inversionTotal);
+            document.getElementById('statPromedioParticipantes').textContent = promedioParticipantes;
+        }
+        
+        function renderEstadisticasTable(registros) {
+            const tbody = document.getElementById('estadisticasTable');
+            
+            if (registros.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No hay registros en el rango de fechas seleccionado
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = registros
+                .sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha))
+                .map(registro => {
+                    const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === registro.Receta_ID);
+                    const bebida = SHEETS_DATA.recetas.find(r => r.ID_Receta === registro.Bebida_ID);
+                    
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(registro.Fecha)}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.Jornada}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${receta ? receta.Nombre : registro.Receta_ID}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${bebida ? bebida.Nombre : registro.Bebida_ID}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.Num_Participantes}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatCurrency(registro.Valor_Estimado_Total)}</td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+        
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount || 0);
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('es-CO');
+        }
+        
+        // Inicializar eventos de ingredientes al cargar
+        setTimeout(() => {
+            setupIngredientEvents();
+        }, 100);
+    </script>
+</body>
+</html>
