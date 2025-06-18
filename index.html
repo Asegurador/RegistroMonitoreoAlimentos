@@ -559,7 +559,7 @@ async function loadAllData() {
     try {
         updateUserStatus('Cargando datos...');
         await Promise.all([
-            loadRecetas(),
+            loadRecetas(), // ← Este debe apuntar a Apps Script, no gviz
             loadCostos(),
             loadRegistros()
         ]);
@@ -575,9 +575,22 @@ async function loadAllData() {
 }
 
 async function loadRecetas() {
-    const data = await fetchSheetData('Recetas');
-    SHEETS_DATA.recetas = data;
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const data = await response.json();
+        
+        if (data.success && data.recetas) {
+            SHEETS_DATA.recetas = data.recetas;
+        } else {
+            console.warn('❌ No se pudieron cargar las recetas desde Apps Script');
+            SHEETS_DATA.recetas = [];
+        }
+    } catch (error) {
+        console.error('❌ Error al obtener recetas desde Apps Script:', error);
+        SHEETS_DATA.recetas = [];
+    }
 }
+
 
 async function loadCostos() {
     const data = await fetchSheetData('Costos_Unitarios');
