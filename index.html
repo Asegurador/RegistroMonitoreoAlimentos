@@ -848,7 +848,7 @@ async function saveReceta(e) {
     try {
         // ✅ USAR FORM DATA PARA EVITAR CORS
         const formData = new FormData();
-        formData.append('action', 'guardarReceta');
+        formData.append('action', 'saveReceta');
         formData.append('receta', JSON.stringify(receta));
 
         const response = await fetch(APPS_SCRIPT_URL, {
