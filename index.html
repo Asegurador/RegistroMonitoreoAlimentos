@@ -1654,6 +1654,7 @@ function cerrarModalEdicion() {
 }
 
 // ✅ Guarda la edición actualizada
+// ✅ Guarda la edición actualizada
 function guardarEdicion() {
   const id = document.getElementById('editId').value;
 
@@ -1674,6 +1675,11 @@ function guardarEdicion() {
     Pasos_Preparacion: document.getElementById('editPasos').value,
     Costo: document.getElementById('editCosto').value
   };
+
+  // ✅ LOG PARA DEPURAR
+  console.log("📤 Enviando actualización...");
+  console.log("🆔 ID:", id);
+  console.log("📦 Receta:", receta);
 
   // Enviar al backend
   const formData = new FormData();
@@ -1697,6 +1703,7 @@ function guardarEdicion() {
   })
   .catch(err => alert("❌ Error de red: " + err.message));
 }
+
 
 // 🧱 Crea una fila de ingrediente editable
 function crearFilaIngredienteEdit(valor = "") {
