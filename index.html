@@ -1164,13 +1164,25 @@ function renderEstadisticasTable(registros) {
 }
 
 // Funciones de utilidad
-function formatDate(dateString) {
-    if (!dateString) return '';
-    const date = new Date(dateString);
+function formatDate(dateInput) {
+    if (!dateInput) return '';
+
+    let date;
+
+    // Si ya es un objeto Date
+    if (Object.prototype.toString.call(dateInput) === "[object Date]") {
+        date = dateInput;
+    } else {
+        // Si viene como string tipo ISO o valor numérico
+        date = new Date(dateInput);
+    }
+
+    if (isNaN(date.getTime())) return 'Fecha inválida';
+
     return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
+        day: '2-digit',
         month: '2-digit',
-        day: '2-digit'
+        year: 'numeric'
     });
 }
 
