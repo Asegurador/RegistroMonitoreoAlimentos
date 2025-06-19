@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1628,16 +1629,24 @@ function editarReceta(id) {
   const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === id);
   if (!receta) return alert("❌ Receta no encontrada");
 
+  // Limpiar contenedor
+  document.getElementById('editIngredientesContainer').innerHTML = "";
+
+  // Crear las filas de ingredientes dinámicas
+  JSON.parse(receta.Ingredientes_JSON || '[]').forEach(i => crearFilaIngredienteEdit(i));
+
+  // Asignar otros valores
   document.getElementById('editId').value = receta.ID_Receta;
   document.getElementById('editNombre').value = receta.Nombre;
   document.getElementById('editTipo').value = receta.Tipo;
   document.getElementById('editDescripcion').value = receta.Descripcion;
-  document.getElementById('editIngredientes').value = JSON.parse(receta.Ingredientes_JSON || '[]').join("\n");
   document.getElementById('editPasos').value = receta.Pasos_Preparacion;
   document.getElementById('editCosto').value = receta.Costo || '';
 
+  // Mostrar modal
   document.getElementById('editModal').classList.remove('hidden');
 }
+
 
 function cerrarModalEdicion() {
   document.getElementById('editModal').classList.add('hidden');
