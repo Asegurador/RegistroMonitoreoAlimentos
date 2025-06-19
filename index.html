@@ -637,18 +637,29 @@ async function fetchSheetData(sheetName) {
                     if (typeof row.Fecha === 'number') { // Si es un número de serie de fecha (Google Sheets)
                         date = new Date((row.Fecha - 25569) * 86400 * 1000); // Convierte a milisegundos desde epoch
                     } else if (typeof row.Fecha === 'string') {
-                        // Intenta parsear YYYY-MM-DD
-                        date = new Date(row.Fecha + 'T00:00:00'); // Añade T00:00:00 para evitar problemas de zona horaria
-                        // Si falla, intenta parsear DD/MM/YYYY o DD-MM-YYYY
-                        if (isNaN(date.getTime())) {
-                            let parts;
-                            if (row.Fecha.includes('/')) {
-                                parts = row.Fecha.split('/');
-                            } else if (row.Fecha.includes('-')) {
-                                parts = row.Fecha.split('-');
-                            }
-                            if (parts && parts.length === 3) {
-                                date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                        // **MODIFICACIÓN AQUÍ**
+                        // Intenta parsear Date(YYYY,M,D)
+                        const dateMatch = row.Fecha.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+                        if (dateMatch) {
+                            // Month is 0-indexed in JavaScript Date, but Google Sheets Date() function uses 1-indexed month.
+                            // However, the JSON output from gviz query for a date *value* (not a string that says "Date(...)")
+                            // usually comes as a number of days since Dec 30, 1899.
+                            // If it's literally the string "Date(2025,5,19)", then month 5 means June.
+                            // The `new Date()` constructor with year, month (0-indexed), day will handle this.
+                            date = new Date(parseInt(dateMatch[1]), parseInt(dateMatch[2]), parseInt(dateMatch[3]));
+                        } else {
+                            // Original parsing for YYYY-MM-DD or DD/MM/YYYY
+                            date = new Date(row.Fecha + 'T00:00:00'); 
+                            if (isNaN(date.getTime())) {
+                                let parts;
+                                if (row.Fecha.includes('/')) {
+                                    parts = row.Fecha.split('/');
+                                } else if (row.Fecha.includes('-')) {
+                                    parts = row.Fecha.split('-');
+                                }
+                                if (parts && parts.length === 3) {
+                                    date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                                }
                             }
                         }
                     }
@@ -1044,24 +1055,29 @@ function calculateRecipeCost(recetaId) {
     const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === recetaId);
     if (!receta) return 0;
     
+    // **MODIFICACIÓN AQUÍ**
+    // Si la receta tiene un costo predefinido (ingresado manualmente al crear/editar la receta), úsalo.
+    // Asegúrate de que el campo 'Costo' en tus datos de receta sea el que almacena el costo final por porción.
+    if (receta.Costo !== undefined && receta.Costo !== null && !isNaN(parseFloat(receta.Costo))) {
+        return parseFloat(receta.Costo);
+    }
+
+    // Si no hay un costo predefinido, entonces calcula basado en ingredientes (comportamiento actual)
     const ingredientes = JSON.parse(receta.Ingredientes_JSON || '[]');
     let costoTotal = 0;
     
     ingredientes.forEach(ingredienteStr => {
-        // Parsear el string del ingrediente (ej: "100g Harina de Maíz")
         const match = ingredienteStr.match(/^(\d+(?:\.\d+)?)(.*?)\s+(.+)$/);
         if (match) {
             const cantidad = parseFloat(match[1]);
             const unidad = match[2];
             const nombre = match[3];
             
-            // Buscar costo en la tabla de costos
             const costo = SHEETS_DATA.costos.find(c => 
                 c.Ingrediente_Base && c.Ingrediente_Base.toLowerCase().includes(nombre.toLowerCase())
             );
             
             if (costo) {
-                // Conversión simple de unidades (esto se puede mejorar)
                 let factor = 1;
                 if (unidad === 'g' && costo.Unidad_Base === 'kg') factor = 0.001;
                 if (unidad === 'ml' && costo.Unidad_Base === 'litro') factor = 0.001;
