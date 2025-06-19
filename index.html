@@ -615,13 +615,11 @@ async function fetchSheetData(sheetName) {
         const response = await fetch(url);
         const text = await response.text();
         
-        // Extraer JSON de la respuesta de Google Visualization API
         const jsonText = text.substring(47).slice(0, -2);
         const data = JSON.parse(jsonText);
         
         if (!data.table || !data.table.rows) return [];
         
-        // Convertir a formato más manejable
         const headers = data.table.cols.map(col => col.label || col.id);
         const rows = data.table.rows.map(row => {
             const obj = {};
@@ -631,6 +629,40 @@ async function fetchSheetData(sheetName) {
             });
             return obj;
         });
+        
+        // ¡Normalizar las fechas a YYYY-MM-DD al leerlas!
+        if (sheetName === 'Registros_Consumo') {
+            rows.forEach(row => {
+                if (row.Fecha) {
+                    let date;
+                    if (typeof row.Fecha === 'number') { // Si es un número de serie de fecha (Google Sheets)
+                        date = new Date((row.Fecha - 25569) * 86400 * 1000); // Convierte a milisegundos desde epoch
+                    } else if (typeof row.Fecha === 'string') {
+                        // Intenta parsear YYYY-MM-DD
+                        date = new Date(row.Fecha + 'T00:00:00'); // Añade T00:00:00 para evitar problemas de zona horaria
+                        // Si falla, intenta parsear DD/MM/YYYY o DD-MM-YYYY
+                        if (isNaN(date.getTime())) {
+                            let parts;
+                            if (row.Fecha.includes('/')) {
+                                parts = row.Fecha.split('/');
+                            } else if (row.Fecha.includes('-')) {
+                                parts = row.Fecha.split('-');
+                            }
+                            if (parts && parts.length === 3) {
+                                date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                            }
+                        }
+                    }
+
+                    if (date && !isNaN(date.getTime())) {
+                        row.Fecha = date.toISOString().split('T')[0]; // Guardar como YYYY-MM-DD
+                    } else {
+                        console.warn(`Fecha inválida encontrada y omitida: ${row.Fecha}`);
+                        row.Fecha = ''; // O manejar como prefieras
+                    }
+                }
+            });
+        }
         
         return rows.filter(row => Object.values(row).some(val => val !== ''));
         
@@ -700,15 +732,17 @@ function hideLoading(buttonId) {
 // Dashboard functions
 function updateDashboard() {
     const totalRecetas = SHEETS_DATA.recetas.length;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0]; // Esto es YYYY-MM-DD
+    
+    // Ahora r.Fecha debería ser también YYYY-MM-DD debido a fetchSheetData
     const registrosHoy = SHEETS_DATA.registros.filter(r => r.Fecha === today);
+    
     const inversionHoy = registrosHoy.reduce((sum, r) => sum + (parseFloat(r.Valor_Estimado_Total) || 0), 0);
     
     document.getElementById('totalRecetas').textContent = totalRecetas;
     document.getElementById('registrosHoy').textContent = registrosHoy.length;
     document.getElementById('inversionHoy').textContent = formatCurrency(inversionHoy);
     
-    // Últimos registros
     renderUltimosRegistros();
 }
 
@@ -859,13 +893,15 @@ async function saveReceta(e) {
         Tipo: document.getElementById('tipoReceta').value,
         Descripcion: document.getElementById('descripcionReceta').value,
         Ingredientes_JSON: JSON.stringify(ingredientes),
-        Pasos_Preparacion: document.getElementById('pasosReceta').value
+        Pasos_Preparacion: document.getElementById('pasosReceta').value,
+        // ¡Añadido este campo para guardar el costo!
+        Costo: parseFloat(document.getElementById('costoReceta').value) || 0 // Guarda el valor del costo/precio
     };
 
     try {
-        // ✅ USAR FORM DATA PARA EVITAR CORS
         const formData = new FormData();
         formData.append('action', 'saveReceta');
+        // Asegúrate de que el backend de Apps Script espere 'Costo' o 'Precio'
         formData.append('receta', JSON.stringify(receta));
 
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -873,7 +909,6 @@ async function saveReceta(e) {
             body: formData
         });
 
-        // ✅ MANEJAR RESPUESTA DE APPS SCRIPT
         const responseText = await response.text();
         let data;
         
@@ -887,7 +922,7 @@ async function saveReceta(e) {
         if (data.success) {
             showToast('Receta guardada correctamente');
             toggleRecetaForm();
-            await loadRecetas();
+            await loadRecetas(); // Recargar recetas para ver el cambio
             renderRecetas();
             populateRecipeSelects();
             updateDashboard();
@@ -899,6 +934,7 @@ async function saveReceta(e) {
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
     }
 }
+        
 SHEETS_DATA = SHEETS_DATA || { recetas: [] };
 async function cargarRecetas() {
   try {
@@ -951,7 +987,7 @@ function renderRecetas() {
                             ${ingredientes.slice(0, 3).join(', ')}
                             ${ingredientes.length > 3 ? `... (+${ingredientes.length - 3} más)` : ''}
                         </div>
-                        <p class="mt-2 text-xs text-gray-500">💰 Precio: $${receta.Precio || '0'}</p>
+                        <p class="mt-2 text-xs text-gray-500">💰 Costo: ${formatCurrency(receta.Costo)}</p>
                     </div>
                 </div>
                 <div class="flex space-x-2 ml-4">
@@ -1045,7 +1081,7 @@ async function saveRegistro(e) {
     e.preventDefault();
 
     const registro = {
-        Fecha: document.getElementById('fechaRegistro').value,
+        Fecha: document.getElementById('fechaRegistro').value, // Esto ya es YYYY-MM-DD
         Jornada: document.getElementById('jornadaRegistro').value,
         Receta_ID: document.getElementById('recetaSolida').value,
         Bebida_ID: document.getElementById('bebidaRegistro').value,
@@ -1171,16 +1207,12 @@ function renderEstadisticasTable(registros) {
 function formatDate(dateInput) {
     if (!dateInput) return '';
 
-    // Forzar formato YYYY-MM-DD
-    const parts = ('' + dateInput).split('-');
-    if (parts.length !== 3) return 'Fecha inválida';
-
-    const [year, month, day] = parts;
-    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    // Intenta crear una fecha a partir de YYYY-MM-DD (formato interno)
+    const date = new Date(dateInput + 'T00:00:00'); 
 
     if (isNaN(date.getTime())) return 'Fecha inválida';
 
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('es-ES', { // Formato día/mes/año
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
