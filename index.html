@@ -895,13 +895,13 @@ async function saveReceta(e) {
         Ingredientes_JSON: JSON.stringify(ingredientes),
         Pasos_Preparacion: document.getElementById('pasosReceta').value,
         // ¡Añadido este campo para guardar el costo!
-        Costo: parseFloat(document.getElementById('costoReceta').value) || 0 // Guarda el valor del costo/precio
+        Costo: parseFloat(document.getElementById('costoReceta').value) || 0 // Guarda el valor del costo/Costo
     };
 
     try {
         const formData = new FormData();
         formData.append('action', 'saveReceta');
-        // Asegúrate de que el backend de Apps Script espere 'Costo' o 'Precio'
+        // Asegúrate de que el backend de Apps Script espere 'Costo' o 'Costo'
         formData.append('receta', JSON.stringify(receta));
 
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -1561,7 +1561,7 @@ function editarReceta(id) {
   document.getElementById('editDescripcion').value = receta.Descripcion;
   document.getElementById('editIngredientes').value = JSON.parse(receta.Ingredientes_JSON || '[]').join("\n");
   document.getElementById('editPasos').value = receta.Pasos_Preparacion;
-  document.getElementById('editPrecio').value = receta.Precio || '';
+  document.getElementById('editCosto').value = receta.Costo || '';
 
   document.getElementById('editModal').classList.remove('hidden');
 }
@@ -1580,7 +1580,7 @@ function guardarEdicion() {
       document.getElementById('editIngredientes').value.split("\n").filter(l => l.trim() !== "")
     ),
     Pasos_Preparacion: document.getElementById('editPasos').value,
-    Precio: document.getElementById('editPrecio').value
+    Costo: document.getElementById('editCosto').value
   };
 
   const formData = new FormData();
