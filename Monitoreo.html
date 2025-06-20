@@ -61,8 +61,8 @@
                     <button id="configBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
                         <i class="fas fa-cog"></i> Configurar
                     </button>
-                    <button onclick="cerrarSesion()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                    💢 Cerrar sesión
+                    <button onclick="cerrarSesion()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-all">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
                     </button>
                 </div>
             </div>
@@ -487,8 +487,11 @@
             <span id="toastMessage">Mensaje</span>
         </div>
     </div>
+
+    <!------- Salir ------>
+    <div id="sistemaContainer">
+        </div>
     
-    <script src="configuracion.js"></script> 
     <script>
 // Variables globales
 let SHEETS_ID = '';
@@ -1754,6 +1757,14 @@ document.getElementById('addEditIngredient').addEventListener('click', () => {
 
 console.log('✅ Aplicación de Gestión de Recetas y Registros cargada correctamente');
     </script>
+
+<div id="sistemaContainer">
+    </div>
+<div id="loginContainer" class="hidden">
+    </div>
+
+
+<script src="configuracion.js"></script>
 
 </body>
 </html>
