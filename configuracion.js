@@ -1,4 +1,5 @@
-    // ✅ Tiempo en milisegundos (5 min)
+  <script>
+      // ✅ Tiempo en milisegundos (5 min)
     const TIEMPO_EXPIRACION = 5 * 60 * 1000;
     let timeoutInactividad;
 
