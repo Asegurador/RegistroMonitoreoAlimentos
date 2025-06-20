@@ -26,9 +26,14 @@ function mostrarSistema() {
 
 // ✅ Cerrar sesión
 function cerrarSesion() {
-  sessionStorage.removeItem("sesionActiva");
+  sessionStorage.removeItem("sesionActiva"); // Elimina la sesión activa
+
+  // Oculta el contenedor del sistema y muestra el de login
   document.getElementById("loginContainer").classList.remove("hidden");
   document.getElementById("sistemaContainer").classList.add("hidden");
+
+  // ¡NUEVA LÍNEA PARA REDIRIGIR A index.html!
+  window.location.href = "index.html";
 }
 
 // ✅ Validar si hay sesión activa al cargar
@@ -44,7 +49,7 @@ function resetInactividad() {
   clearTimeout(timeoutInactividad);
   timeoutInactividad = setTimeout(() => {
     alert("⏳ Sesión cerrada por inactividad");
-    cerrarSesion();
+    cerrarSesion(); // Esta llamada ahora también redirigirá
   }, TIEMPO_EXPIRACION);
 }
 
