@@ -953,6 +953,11 @@ function setupIngredientEvents() {
 async function saveReceta(e) {
     e.preventDefault();
 
+    if (!validateRecetaForm()) return;
+
+    const submitButton = e.submitter || document.querySelector('#recetaForm button[type="submit"]');
+    submitButton.disabled = true;
+
     const ingredientes = [];
     document.querySelectorAll('.ingredient-row').forEach(row => {
         const cantidad = row.querySelector('.cantidad').value;
@@ -963,6 +968,7 @@ async function saveReceta(e) {
 
     if (ingredientes.length === 0) {
         showToast('Debe agregar al menos un ingrediente', 'error');
+        submitButton.disabled = false;
         return;
     }
 
@@ -972,14 +978,12 @@ async function saveReceta(e) {
         Descripcion: document.getElementById('descripcionReceta').value,
         Ingredientes_JSON: JSON.stringify(ingredientes),
         Pasos_Preparacion: document.getElementById('pasosReceta').value,
-        // ¡Añadido este campo para guardar el costo!
-        Costo: parseFloat(document.getElementById('costoReceta').value) || 0 // Guarda el valor del costo/Costo
+        Costo: parseFloat(document.getElementById('costoReceta').value) || 0
     };
 
     try {
         const formData = new FormData();
         formData.append('action', 'saveReceta');
-        // Asegúrate de que el backend de Apps Script espere 'Costo' o 'Costo'
         formData.append('receta', JSON.stringify(receta));
 
         const response = await fetch(APPS_SCRIPT_URL, {
@@ -989,7 +993,7 @@ async function saveReceta(e) {
 
         const responseText = await response.text();
         let data;
-        
+
         try {
             data = JSON.parse(responseText);
         } catch (parseError) {
@@ -1000,7 +1004,7 @@ async function saveReceta(e) {
         if (data.success) {
             showToast('Receta guardada correctamente');
             toggleRecetaForm();
-            await loadRecetas(); // Recargar recetas para ver el cambio
+            await loadRecetas();
             renderRecetas();
             populateRecipeSelects();
             updateDashboard();
@@ -1010,27 +1014,11 @@ async function saveReceta(e) {
     } catch (error) {
         console.error('Error completo:', error);
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
+    } finally {
+        submitButton.disabled = false;
     }
 }
 
-async function saveReceta(e) {
-  e.preventDefault();
-
-  if (!validateRecetaForm()) return;
-
-  const submitButton = e.submitter || document.querySelector('#recetaForm button[type="submit"]');
-  submitButton.disabled = true;
-
-  try {
-    // ... tu lógica fetch
-  } catch (err) {
-    showToast("Error al guardar", "error");
-  } finally {
-    submitButton.disabled = false;
-  }
-}
-
-    
 SHEETS_DATA = SHEETS_DATA || { recetas: [] };
 async function cargarRecetas() {
   try {
@@ -1181,8 +1169,13 @@ function calculateRecipeCost(recetaId) {
 async function saveRegistro(e) {
     e.preventDefault();
 
+    if (!validateRegistroForm()) return;
+
+    const submitButton = e.submitter || document.querySelector('#registroForm button[type="submit"]');
+    submitButton.disabled = true;
+
     const registro = {
-        Fecha: document.getElementById('fechaRegistro').value, // Esto ya es YYYY-MM-DD
+        Fecha: document.getElementById('fechaRegistro').value,
         Jornada: document.getElementById('jornadaRegistro').value,
         Receta_ID: document.getElementById('recetaSolida').value,
         Bebida_ID: document.getElementById('bebidaRegistro').value,
@@ -1191,7 +1184,6 @@ async function saveRegistro(e) {
     };
 
     try {
-        // ✅ USAR FORM DATA PARA EVITAR CORS
         const formData = new FormData();
         formData.append('action', 'saveRegistro');
         formData.append('registro', JSON.stringify(registro));
@@ -1201,10 +1193,9 @@ async function saveRegistro(e) {
             body: formData
         });
 
-        // ✅ MANEJAR RESPUESTA DE APPS SCRIPT
         const responseText = await response.text();
         let data;
-        
+
         try {
             data = JSON.parse(responseText);
         } catch (parseError) {
@@ -1224,25 +1215,9 @@ async function saveRegistro(e) {
     } catch (error) {
         console.error('Error completo:', error);
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
+    } finally {
+        submitButton.disabled = false;
     }
-}
-        
-async function saveRegistro(e) {
-  e.preventDefault();
-
-  if (!validateRegistroForm()) return;
-
-  const submitButton = e.submitter || document.querySelector('#registroForm button[type="submit"]');
-  submitButton.disabled = true;
-
-  try {
-    // lógica fetch
-  } catch (error) {
-    console.error(error);
-    showToast("Error al guardar registro", "error");
-  } finally {
-    submitButton.disabled = false;
-  }
 }
 
 function calculateTotalCost() {
