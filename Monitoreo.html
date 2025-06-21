@@ -1012,7 +1012,25 @@ async function saveReceta(e) {
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
     }
 }
-        
+
+async function saveReceta(e) {
+  e.preventDefault();
+
+  if (!validateRecetaForm()) return;
+
+  const submitButton = e.submitter || document.querySelector('#recetaForm button[type="submit"]');
+  submitButton.disabled = true;
+
+  try {
+    // ... tu lógica fetch
+  } catch (err) {
+    showToast("Error al guardar", "error");
+  } finally {
+    submitButton.disabled = false;
+  }
+}
+
+    
 SHEETS_DATA = SHEETS_DATA || { recetas: [] };
 async function cargarRecetas() {
   try {
@@ -1207,6 +1225,24 @@ async function saveRegistro(e) {
         console.error('Error completo:', error);
         showToast('Error al conectar con el servidor: ' + error.message, 'error');
     }
+}
+        
+async function saveRegistro(e) {
+  e.preventDefault();
+
+  if (!validateRegistroForm()) return;
+
+  const submitButton = e.submitter || document.querySelector('#registroForm button[type="submit"]');
+  submitButton.disabled = true;
+
+  try {
+    // lógica fetch
+  } catch (error) {
+    console.error(error);
+    showToast("Error al guardar registro", "error");
+  } finally {
+    submitButton.disabled = false;
+  }
 }
 
 function calculateTotalCost() {
