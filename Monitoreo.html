@@ -9,43 +9,76 @@
     <link rel="icon" type="image/png" href="logo_CDI.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        
-        .card-hover {
-            transition: all 0.3s ease;
-        }
-        
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-    </style>
+  <style>
+    /* Animaciones y estilos base */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .loading {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Mejoras de responsividad */
+    .container {
+      max-width: 100%;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    @media screen and (min-width: 768px) {
+      .container {
+        max-width: 768px;
+      }
+    }
+    @media screen and (min-width: 1024px) {
+      .container {
+        max-width: 1024px;
+      }
+    }
+    @media screen and (min-width: 1280px) {
+      .container {
+        max-width: 1280px;
+      }
+    }
+    @media screen and (min-width: 1536px) {
+      .container {
+        max-width: 1536px;
+      }
+    }
+
+    /* Mejoras para tablas en TV y móviles */
+    table {
+      min-width: 100%;
+    }
+    .tab-content table th, .tab-content table td {
+      word-break: break-word;
+    }
+    .tab-content table {
+      font-size: 0.875rem;
+    }
+  </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Header -->
@@ -495,7 +528,7 @@
     <script>
 // Variables globales
 let SHEETS_ID = '';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRIJVnGGjtpawx7Z035ylPNC07SBPglXsAQrxgAHKfXQYqX3NYqDCYWPjw7e-zLhMACQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzE8VtDf8b60BDMYilS5ul3NatNNESvtpp1t5Drx3cmRu8AT3i1CzA-Mo1uYf_3J3O3tA/exec';
 let SHEETS_DATA = {
     recetas: [],
     costos: [],
