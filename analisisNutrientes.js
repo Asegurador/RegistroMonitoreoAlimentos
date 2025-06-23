@@ -36,11 +36,10 @@ const NOMBRES_NUTRIENTES = {
   NIA: "Niacina (B3)"
 };
 
-// Traducción rápida básica
 function traducirIngrediente(ing) {
   return ing
     .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/vegetal/g, "vegetable")
     .replace(/pollo/g, "chicken")
     .replace(/arroz/g, "rice")
@@ -56,7 +55,6 @@ function traducirIngrediente(ing) {
     .replace(/aceite/g, "oil");
 }
 
-// Cargar recetas sólidas en el select
 function cargarRecetasAnalisis() {
   const select = document.getElementById("selectRecetaAnalisis");
   if (!SHEETS_DATA || !Array.isArray(SHEETS_DATA.recetas)) return;
@@ -66,7 +64,6 @@ function cargarRecetasAnalisis() {
     solidas.map(r => `<option value="${r.ID_Receta}">${r.Nombre}</option>`).join("");
 }
 
-// Análisis completo
 async function analizarRecetaNutricion() {
   const select = document.getElementById("selectRecetaAnalisis");
   const id = select.value;
@@ -112,15 +109,9 @@ async function analizarRecetaNutricion() {
   mostrarResultadoDetallado(receta.Nombre, total, detallesPorIngrediente);
 }
 
-// Mostrar resultados en tabla y gráfica
 function mostrarResultadoDetallado(nombre, total, detallesPorIngrediente) {
   const div = document.getElementById("resultadoNutricional");
-  html += `<div class="mt-6 bg-green-50 border border-green-200 p-4 rounded">
-  <h4 class="text-md font-semibold text-green-700 mb-2">💡 Retroalimentación nutricional:</h4>
-  ${generarRetroalimentacion(total)}
-</div>`;
 
-  // Tabla total
   let html = `
     <h3 class="text-xl font-bold mb-4">🧪 Nutrientes totales de "${nombre}"</h3>
     <table class="w-full text-sm mb-6 border border-gray-300">
@@ -135,10 +126,8 @@ function mostrarResultadoDetallado(nombre, total, detallesPorIngrediente) {
       html += `<tr><td class="p-2">${NOMBRES_NUTRIENTES[clave]}</td><td class="p-2">${total[clave].toFixed(2)}</td></tr>`;
     }
   }
+  html += `</tbody></table>`;
 
-  html += "</tbody></table>";
-
-  // Tabla por ingrediente
   detallesPorIngrediente.forEach(({ nombre, nutrientes }) => {
     html += `<h4 class="text-md font-semibold mt-6 text-blue-600">Ingrediente: ${nombre}</h4>`;
     html += `
@@ -151,15 +140,18 @@ function mostrarResultadoDetallado(nombre, total, detallesPorIngrediente) {
     nutrientes.forEach(n => {
       html += `<tr><td class="p-2">${n.nombre}</td><td class="p-2">${n.valor}</td></tr>`;
     });
-    html += "</tbody></table>";
+    html += `</tbody></table>`;
   });
 
-  div.innerHTML = html;
+  html += `<div class="mt-6 bg-green-50 border border-green-200 p-4 rounded">
+    <h4 class="text-md font-semibold text-green-700 mb-2">💡 Retroalimentación nutricional:</h4>
+    ${generarRetroalimentacion(total)}
+  </div>`;
 
+  div.innerHTML = html;
   mostrarGraficoNutricional(total);
 }
 
-// Gráfico
 function mostrarGraficoNutricional(total) {
   const canvas = document.getElementById("graficoNutricional");
   canvas.classList.remove("hidden");
@@ -204,67 +196,44 @@ function generarRetroalimentacion(total) {
   const hierro = total.FE || 0;
   const fibra = total.FIBTG || 0;
 
-  // 🍼 Calorías
-  if (calorias < 100) {
-    comentarios.push("⚠️ Esta receta es baja en calorías. Puede no ser suficiente para el crecimiento infantil.");
-  } else if (calorias > 400) {
-    comentarios.push("❗ Esta receta es alta en calorías. Úsala en niños activos o adolescentes.");
-  } else {
-    comentarios.push("✅ Buena densidad calórica para una porción infantil o maternal.");
-  }
+  if (calorias < 100) comentarios.push("⚠️ Esta receta es baja en calorías. Puede no ser suficiente para el crecimiento infantil.");
+  else if (calorias > 400) comentarios.push("❗ Esta receta es alta en calorías. Úsala en niños activos o adolescentes.");
+  else comentarios.push("✅ Buena densidad calórica para una porción infantil o maternal.");
 
-  // 🍬 Azúcar
-  if (azucares > 25) {
-    comentarios.push("❌ Contiene exceso de azúcares. Limita su uso en bebés, lactantes y niños pequeños.");
-  } else if (azucares > 15) {
-    comentarios.push("⚠️ Moderadamente alta en azúcares. Úsala con precaución.");
-  } else {
-    comentarios.push("✅ Bajo contenido de azúcares añadidos.");
-  }
+  if (azucares > 25) comentarios.push("❌ Contiene exceso de azúcares. Limita su uso en bebés, lactantes y niños pequeños.");
+  else if (azucares > 15) comentarios.push("⚠️ Moderadamente alta en azúcares. Úsala con precaución.");
+  else comentarios.push("✅ Bajo contenido de azúcares añadidos.");
 
-  // 🧂 Sodio
-  if (sodio > 500) {
-    comentarios.push("❌ Alto contenido de sodio. No recomendable para bebés ni hipertensos.");
-  } else if (sodio > 200) {
-    comentarios.push("⚠️ Revisa el uso de sal y condimentos.");
-  } else {
-    comentarios.push("✅ Contenido adecuado de sodio.");
-  }
+  if (sodio > 500) comentarios.push("❌ Alto contenido de sodio. No recomendable para bebés ni hipertensos.");
+  else if (sodio > 200) comentarios.push("⚠️ Revisa el uso de sal y condimentos.");
+  else comentarios.push("✅ Contenido adecuado de sodio.");
 
-  // 🥩 Proteína
-  if (proteina < 5) {
-    comentarios.push("⚠️ Aporte proteico bajo. Considera combinar con huevo, carne o legumbres.");
-  } else {
-    comentarios.push("✅ Buen contenido de proteína para desarrollo muscular.");
-  }
+  if (proteina < 5) comentarios.push("⚠️ Aporte proteico bajo. Considera combinar con huevo, carne o legumbres.");
+  else comentarios.push("✅ Buen contenido de proteína para desarrollo muscular.");
 
-  // 🧈 Grasas Saturadas
-  if (grasaSat > 5) {
-    comentarios.push("❗ Grasas saturadas elevadas. Evitar para bebés y lactantes.");
-  } else {
-    comentarios.push("✅ Grasas dentro del rango saludable.");
-  }
+  if (grasaSat > 5) comentarios.push("❗ Grasas saturadas elevadas. Evitar para bebés y lactantes.");
+  else comentarios.push("✅ Grasas dentro del rango saludable.");
 
-  // 🦴 Calcio
-  if (calcio < 100) {
-    comentarios.push("⚠️ Bajo en calcio. Recomendado acompañar con lácteos o vegetales verdes.");
-  } else {
-    comentarios.push("✅ Contribuye a la salud ósea.");
-  }
+  if (calcio < 100) comentarios.push("⚠️ Bajo en calcio. Recomendado acompañar con lácteos o vegetales verdes.");
+  else comentarios.push("✅ Contribuye a la salud ósea.");
 
-  // 💉 Hierro
-  if (hierro < 3) {
-    comentarios.push("⚠️ Bajo aporte de hierro. Útil reforzarlo con carnes o lentejas.");
-  } else {
-    comentarios.push("✅ Aporte aceptable de hierro para la prevención de anemia.");
-  }
+  if (hierro < 3) comentarios.push("⚠️ Bajo aporte de hierro. Útil reforzarlo con carnes o lentejas.");
+  else comentarios.push("✅ Aporte aceptable de hierro para la prevención de anemia.");
 
-  // 🌾 Fibra
-  if (fibra < 2) {
-    comentarios.push("⚠️ Poca fibra. Puede afectar la digestión en niños.");
-  } else {
-    comentarios.push("✅ Contribuye a una digestión saludable.");
-  }
+  if (fibra < 2) comentarios.push("⚠️ Poca fibra. Puede afectar la digestión en niños.");
+  else comentarios.push("✅ Contribuye a una digestión saludable.");
 
   return comentarios.map(c => `<p class="text-sm text-gray-800 mb-1">🔎 ${c}</p>`).join("");
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const visibleTab = document.querySelector(".tab-content:not(.hidden)");
+  if (visibleTab && visibleTab.id === "analisisAlimentos") cargarRecetasAnalisis();
+
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const selectedTab = btn.getAttribute('data-tab');
+      if (selectedTab === 'analisisAlimentos') cargarRecetasAnalisis();
+    });
+  });
+});
