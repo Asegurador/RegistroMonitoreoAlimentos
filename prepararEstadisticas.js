@@ -1,5 +1,6 @@
 function prepararEstadisticas() {
   const data = SHEETS_DATA.registros || [];
+  const recetasCatalogo = SHEETS_DATA.recetas || [];
 
   const resumen = document.getElementById("resumenEstadisticas");
   const canvas = document.getElementById("graficoRecetasFrecuentes");
@@ -15,15 +16,45 @@ function prepararEstadisticas() {
   let totalCosto = 0;
   const frecuencia = {};
 
-  data.forEach(r => {
-    totalRecetas++;
-    totalParticipantes += parseInt(r.Participantes || 0);
-    totalCosto += parseInt(r.ValorTotal || 0);
-    const receta = r.Receta || "Desconocida";
-    frecuencia[receta] = (frecuencia[receta] || 0) + 1;
+  // Mapa de ID de receta → Nombre
+  const mapaRecetas = {};
+  recetasCatalogo.forEach(r => {
+    mapaRecetas[r.ID_Receta] = r.Nombre;
   });
 
-  // Tarjetas resumen
+data.forEach(r => {
+  const participantes = parseInt(r.Num_Participantes || 0);
+  const costo = parseFloat(r.Valor_Estimado_Total || 0); // <- CORRECTO AHORA
+
+  totalParticipantes += participantes;
+  totalCosto += costo;
+
+    // Procesar receta principal
+    const recetaID = r.Receta_ID;
+    if (recetaID) {
+      const nombreReceta = mapaRecetas[recetaID] || recetaID;
+      if (!frecuencia[nombreReceta]) {
+        frecuencia[nombreReceta] = { veces: 0, participantes: 0 };
+      }
+      frecuencia[nombreReceta].veces++;
+      frecuencia[nombreReceta].participantes += participantes;
+      totalRecetas++;
+    }
+
+    // Procesar bebida si existe
+    const bebidaID = r.Bebida_ID;
+    if (bebidaID) {
+      const nombreBebida = mapaRecetas[bebidaID] || bebidaID;
+      if (!frecuencia[nombreBebida]) {
+        frecuencia[nombreBebida] = { veces: 0, participantes: 0 };
+      }
+      frecuencia[nombreBebida].veces++;
+      frecuencia[nombreBebida].participantes += participantes;
+      totalRecetas++;
+    }
+  });
+
+  // Resumen superior
   resumen.innerHTML = `
     <div class="bg-blue-100 p-4 rounded-lg shadow text-center">
       <p class="text-sm text-blue-800 mb-1">Recetas Preparadas</p>
@@ -41,7 +72,7 @@ function prepararEstadisticas() {
 
   // Preparar gráfico
   const labels = Object.keys(frecuencia);
-  const valores = Object.values(frecuencia);
+  const valores = labels.map(k => frecuencia[k].veces);
 
   canvas.classList.remove("hidden");
   const ctx = canvas.getContext("2d");
@@ -52,7 +83,7 @@ function prepararEstadisticas() {
     data: {
       labels,
       datasets: [{
-        label: 'Frecuencia de recetas',
+        label: 'Frecuencia de recetas y bebidas',
         data: valores,
         backgroundColor: '#3b82f6'
       }]
@@ -69,7 +100,7 @@ function prepararEstadisticas() {
           title: { display: true, text: 'Cantidad' }
         },
         x: {
-          title: { display: true, text: 'Recetas' }
+          title: { display: true, text: 'Recetas y Bebidas' }
         }
       }
     }
