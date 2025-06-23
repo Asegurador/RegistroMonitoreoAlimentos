@@ -170,9 +170,9 @@
                     <i class="fas fa-chart-bar mr-2"></i>Estadísticas Directas
                 </button>
                 <button
-                class="nav-btn px-6 py-3 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium text-left sm:text-center"
-                data-tab="prepararEstadisticas">
-                <i class="far fa-calendar-plus"></i> Estadísticas Generales
+                    class="nav-btn px-6 py-3 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium text-left sm:text-center"
+                    data-tab="prepararEstadisticas">
+                    <i class="far fa-calendar-plus"></i>Estadísticas Generales
                 </button>
                 <button
                     class="nav-btn px-6 py-3 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium text-left sm:text-center"
@@ -662,24 +662,24 @@
             </div>
         </div>
 
-    <!-- 📈 Módulo de Estadísticas -->
-    <div id="prepararEstadisticas" class="tab-content hidden">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-bold mb-6">📈 Estadísticas Generales</h3>
-  
-          <!-- Resumen principal -->
-          <div id="resumenEstadisticas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-            <!-- Tarjetas cargadas por JS -->
+        <!-- 📈 Módulo de Estadísticas -->
+        <div id="prepararEstadisticas" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-bold mb-6">📈 Estadísticas Generales</h3>
+
+                <!-- Resumen principal -->
+                <div id="resumenEstadisticas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                    <!-- Tarjetas cargadas por JS -->
+                </div>
+
+                <!-- Gráfico -->
+                <div class="mb-6">
+                    <h4 class="text-md font-semibold mb-3">🍽️ Recetas más preparadas</h4>
+                    <canvas id="graficoRecetasFrecuentes" class="w-full max-w-3xl mx-auto"></canvas>
+                </div>
+            </div>
         </div>
-  
-          <!-- Gráfico -->
-          <div class="mb-6">
-            <h4 class="text-md font-semibold mb-3">🍽️ Recetas más preparadas</h4>
-            <canvas id="graficoRecetasFrecuentes" class="w-full max-w-3xl mx-auto"></canvas>
-        </div>
-    </div>
-</div>
-  
+
     </main>
 
 
@@ -754,7 +754,7 @@
 
     <!------- Salir ------>
     <div id="sistemaContainer"></div>
-    <script src="analisisNutrientes.js">  </script><script src="prepararEstadisticas.js"></script>
+    <script src="analisisNutrientes.js"></script>
     <script>
         // Variables globales
         let SHEETS_ID = "";
@@ -2476,7 +2476,7 @@
                     case 'registro':
                         resetFormularioRegistro();
                         break;
-                    case 'estadisticas':
+                    case 'prepararEstadisticas':
                         prepararEstadisticas();
                         break;
                     case 'analisisAlimentos':
