@@ -626,7 +626,6 @@
      
 
   <!-- 🔬 Análisis de Alimentos -->
-<div class="page-break"></div>
 <div id="analisisAlimentos" class="tab-content hidden">
   <div class="bg-white rounded-lg shadow-md p-6">
     <h3 class="text-lg font-bold mb-4">🔬 Análisis Nutricional por Receta</h3>
@@ -2470,21 +2469,14 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         cargarRecetasAnalisis(); // ✅ carga el select cuando entras
         break;
     }
-  document.addEventListener("DOMContentLoaded", () => {
-  // Cargar recetas si ya estamos en el módulo de análisis
-  const visibleTab = document.querySelector(".tab-content:not(.hidden)");
-  if (visibleTab && visibleTab.id === "analisisAlimentos") {
-    cargarRecetasAnalisis();
-  }
+
   });
 });
 
   console.log("✅ Aplicación de Gestión de Recetas y Registros cargada correctamente");
 </script>
-    
     <div id="sistemaContainer"></div>
     <div id="loginContainer" class="hidden"></div>
-
     <script src="configuracion.js"></script>
 </body>
 
