@@ -2476,14 +2476,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   if (visibleTab && visibleTab.id === "analisisAlimentos") {
     cargarRecetasAnalisis();
   }
-
-  // Además, siempre cargamos al entrar manualmente
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const selectedTab = btn.getAttribute('data-tab');
-      if (selectedTab === 'analisisAlimentos') {
-        cargarRecetasAnalisis();
-      }
   });
 });
 
