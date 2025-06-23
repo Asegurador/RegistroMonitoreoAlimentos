@@ -623,36 +623,48 @@
      
 
   <!-- 🔬 Análisis de Alimentos -->
-  <div id="analisisAlimentos" class="tab-content hidden">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-lg font-bold mb-4">🔬 Análisis Nutricional por Receta</h3>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona una receta:</label>
-                        <select id="selectRecetaAnalisis" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            <option value="">Cargando recetas...</option>
-                        </select>
-                    </div>
-                    <button onclick="analizarRecetaNutricion()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        <i class="fas fa-chart-line mr-2"></i>Analizar Nutrientes
-                    </button>
-                    <div id="resultadoNutricional" class="mt-6"></div>
-                    <div class="mt-4 flex flex-wrap gap-4 justify-between">
-    <div class="w-full lg:w-[48%]">
-        <canvas id="graficoNutricional"></canvas>
-    </div>
-    <div class="w-full lg:w-[48%]">
-        <canvas id="graficoVitaminas"></canvas>
-    </div>
-</div>
+<div id="analisisAlimentos" class="tab-content hidden">
+  <div class="bg-white rounded-lg shadow-md p-6">
+    <h3 class="text-lg font-bold mb-4">🔬 Análisis Nutricional por Receta</h3>
 
-<div class="text-right mt-6">
-    <button onclick="exportarAnalisisPDF()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        <i class="fas fa-file-pdf mr-2"></i>Exportar en PDF
+    <!-- Selector de receta -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona una receta:</label>
+      <select id="selectRecetaAnalisis" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+        <option value="">Cargando recetas...</option>
+      </select>
+    </div>
+
+    <!-- Botón de análisis -->
+    <button onclick="analizarRecetaNutricion()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+      <i class="fas fa-chart-line mr-2"></i>Analizar Nutrientes
     </button>
-</div>
 
-                </div>
-            </main>
+    <!-- Contenedor de resultados para análisis y PDF -->
+    <div id="contenedorAnalisis" class="mt-6">
+      <div id="resultadoNutricional" class="mt-4"></div>
+
+      <!-- Gráficos -->
+      <div class="mt-6 flex flex-wrap gap-6 justify-between">
+        <div class="w-full lg:w-[48%]">
+          <canvas id="graficoNutricional" class="hidden w-full max-w-lg mx-auto"></canvas>
+        </div>
+        <div class="w-full lg:w-[48%]">
+          <canvas id="graficoVitaminas" class="hidden w-full max-w-lg mx-auto"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón de exportación PDF -->
+    <div class="text-right mt-6">
+      <button onclick="exportarAnalisisPDF()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        <i class="fas fa-file-pdf mr-2"></i>Exportar en PDF
+      </button>
+    </div>
+  </div>
+</div>
+    </main>
+
 
 
     <!-- 🔧 MODAL PARA EDITAR RECETA (RESPONSIVE Y DINÁMICO) -->
