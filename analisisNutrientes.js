@@ -56,7 +56,7 @@ function traducirIngrediente(ing) {
     .replace(/aceite/g, "oil");
 }
 
-// Carga recetas sólidas al seleccionar
+// Cargar recetas sólidas en el select
 function cargarRecetasAnalisis() {
   const select = document.getElementById("selectRecetaAnalisis");
   if (!SHEETS_DATA || !Array.isArray(SHEETS_DATA.recetas)) return;
@@ -93,39 +93,69 @@ async function analizarRecetaNutricion() {
     const data = await res.json();
     const nutrientes = data.totalNutrients || {};
 
-    let detalle = `<h4 class="mt-4 font-semibold text-blue-600">Ingrediente: ${ing}</h4>`;
+    let tablaIngrediente = { nombre: ing, nutrientes: [] };
+
     for (const clave of NUTRIENTES_CLAVE) {
       const n = nutrientes[clave];
       if (n) {
-        detalle += `<p><strong>${NOMBRES_NUTRIENTES[clave] || clave}:</strong> ${n.quantity.toFixed(2)} ${n.unit}</p>`;
+        tablaIngrediente.nutrientes.push({
+          nombre: `${NOMBRES_NUTRIENTES[clave] || clave}`,
+          valor: `${n.quantity.toFixed(2)} ${n.unit}`
+        });
         total[clave] = (total[clave] || 0) + n.quantity;
       }
     }
-    detallesPorIngrediente.push(detalle);
+
+    detallesPorIngrediente.push(tablaIngrediente);
   }
 
   mostrarResultadoDetallado(receta.Nombre, total, detallesPorIngrediente);
 }
 
-// Mostrar todos los nutrientes + gráfico
+// Mostrar resultados en tabla y gráfica
 function mostrarResultadoDetallado(nombre, total, detallesPorIngrediente) {
   const div = document.getElementById("resultadoNutricional");
-  let html = `<h3 class="text-lg font-bold">🧪 Nutrientes totales de "${nombre}"</h3>`;
+
+  // Tabla total
+  let html = `
+    <h3 class="text-xl font-bold mb-4">🧪 Nutrientes totales de "${nombre}"</h3>
+    <table class="w-full text-sm mb-6 border border-gray-300">
+      <thead class="bg-gray-100">
+        <tr><th class="p-2 text-left">Nutriente</th><th class="p-2 text-left">Cantidad total</th></tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+  `;
 
   for (const clave of NUTRIENTES_CLAVE) {
     if (total[clave]) {
-      const label = NOMBRES_NUTRIENTES[clave] || clave;
-      html += `<p><strong>${label}:</strong> ${total[clave].toFixed(2)}</p>`;
+      html += `<tr><td class="p-2">${NOMBRES_NUTRIENTES[clave]}</td><td class="p-2">${total[clave].toFixed(2)}</td></tr>`;
     }
   }
 
-  html += detallesPorIngrediente.join("");
+  html += "</tbody></table>";
+
+  // Tabla por ingrediente
+  detallesPorIngrediente.forEach(({ nombre, nutrientes }) => {
+    html += `<h4 class="text-md font-semibold mt-6 text-blue-600">Ingrediente: ${nombre}</h4>`;
+    html += `
+      <table class="w-full text-sm mb-4 border border-gray-200">
+        <thead class="bg-blue-50">
+          <tr><th class="p-2 text-left">Nutriente</th><th class="p-2 text-left">Cantidad</th></tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+    `;
+    nutrientes.forEach(n => {
+      html += `<tr><td class="p-2">${n.nombre}</td><td class="p-2">${n.valor}</td></tr>`;
+    });
+    html += "</tbody></table>";
+  });
+
   div.innerHTML = html;
 
   mostrarGraficoNutricional(total);
 }
 
-// Gráfico macronutrientes
+// Gráfico
 function mostrarGraficoNutricional(total) {
   const canvas = document.getElementById("graficoNutricional");
   canvas.classList.remove("hidden");
@@ -155,6 +185,19 @@ function mostrarGraficoNutricional(total) {
       scales: { y: { beginAtZero: true } }
     }
   });
+}
+
+// Exportar como PDF
+function exportarAnalisisPDF() {
+  const contenedor = document.getElementById("contenedorAnalisis");
+  const opt = {
+    margin: 0.5,
+    filename: 'analisis_nutricional.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(contenedor).save();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
