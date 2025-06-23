@@ -44,7 +44,7 @@
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            backilogramsround: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
         .card-hover {
@@ -377,14 +377,14 @@
                                         <input type="number" placeholder="Cantidad"
                                             class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm"
                                             min="0" step="0.1" />
-                                        <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                            <option value="g">g</option>
-                                            <option value="kg">kg</option>
-                                            <option value="ml">ml</option>
-                                            <option value="litro">litro</option>
-                                            <option value="unidad">unidad</option>
-                                            <option value="taza">taza</option>
-                                            <option value="cucharada">cucharada</option>
+                                        <select class="unit w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                            <option value="gr">gr</option>
+                                            <option value="kilograms">kilograms</option>
+                                            <option value="milliliter">milliliter</option>
+                                            <option value="liter">liter</option>
+                                            <option value="unit">unit</option>
+                                            <option value="cup">cup</option>
+                                            <option value="tablespoon">tablespoon</option>
                                         </select>
                                         <input type="text" placeholder="Nombre del ingrediente"
                                             class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm" />
@@ -1199,14 +1199,14 @@
             container.innerHTML = `
         <div class="ingredient-row flex space-x-2">
             <input type="number" placeholder="Cantidad" class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm" min="0" step="0.1">
-            <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+            <select class="unit w-20 px-2 py-1 border border-gray-300 rounded text-sm">
                 <option value="g">g</option>
-                <option value="kg">kg</option>
-                <option value="ml">ml</option>
-                <option value="litro">litro</option>
-                <option value="unidad">unidad</option>
-                <option value="taza">taza</option>
-                <option value="cucharada">cucharada</option>
+                <option value="kilograms">kilograms</option>
+                <option value="milliliter">milliliter</option>
+                <option value="liter">liter</option>
+                <option value="unit">unit</option>
+                <option value="cup">cup</option>
+                <option value="tablespoon">tablespoon</option>
             </select>
             <input type="text" placeholder="Nombre del ingrediente" class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
             <button type="button" class="remove-ingredient text-red-500 hover:text-red-700 px-2">
@@ -1223,14 +1223,14 @@
             newRow.className = "ingredient-row flex space-x-2";
             newRow.innerHTML = `
         <input type="number" placeholder="Cantidad" class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm" min="0" step="0.1">
-        <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-            <option value="g">g</option>
-            <option value="kg">kg</option>
-            <option value="ml">ml</option>
-            <option value="litro">litro</option>
-            <option value="unidad">unidad</option>
-            <option value="taza">taza</option>
-            <option value="cucharada">cucharada</option>
+        <select class="unit w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+            <option value="gr">gr</option>
+            <option value="kilograms">kilograms</option>
+            <option value="milliliter">milliliter</option>
+            <option value="liter">liter</option>
+            <option value="unit">unit</option>
+            <option value="cup">cup</option>
+            <option value="tablespoon">tablespoon</option>
         </select>
         <input type="text" placeholder="Nombre del ingrediente" class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
         <button type="button" class="remove-ingredient text-red-500 hover:text-red-700 px-2">
@@ -1265,10 +1265,10 @@
             const ingredientes = [];
             document.querySelectorAll(".ingredient-row").forEach((row) => {
                 const cantidad = row.querySelector(".cantidad").value;
-                const unidad = row.querySelector(".unidad").value;
+                const unit = row.querySelector(".unit").value;
                 const nombre = row.querySelector(".ingrediente").value;
                 if (cantidad && nombre)
-                    ingredientes.push(`${cantidad}${unidad} ${nombre}`);
+                    ingredientes.push(`${cantidad}${unit} ${nombre}`);
             });
 
             if (ingredientes.length === 0) {
@@ -1484,7 +1484,7 @@
                 const match = ingredienteStr.match(/^(\d+(?:\.\d+)?)(.*?)\s+(.+)$/);
                 if (match) {
                     const cantidad = parseFloat(match[1]);
-                    const unidad = match[2];
+                    const unit = match[2];
                     const nombre = match[3];
 
                     const costo = SHEETS_DATA.costos.find(
@@ -1495,12 +1495,12 @@
 
                     if (costo) {
                         let factor = 1;
-                        if (unidad === "g" && costo.Unidad_Base === "kg") factor = 0.001;
-                        if (unidad === "ml" && costo.Unidad_Base === "litro")
+                        if (unit === "gr" && costo.unit_Base === "kilograms") factor = 0.001;
+                        if (unit === "milliliter" && costo.unit_Base === "liter")
                             factor = 0.001;
 
                         const costoIngrediente =
-                            cantidad * factor * parseFloat(costo.Costo_Por_Unidad || 0);
+                            cantidad * factor * parseFloat(costo.Costo_Por_unit || 0);
                         costoTotal += costoIngrediente;
                     }
                 }
@@ -1842,7 +1842,7 @@
       margin: 20px;
       padding: 0;
       line-height: 1.5;
-      background-color: #ffffff;
+      backilogramsround-color: #ffffff;
       color: #333;
     }
 
@@ -1875,7 +1875,7 @@
       padding: 16px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      background-color: #f9f9f9;
+      backilogramsround-color: #f9f9f9;
     }
 
     .stat-box h3 {
@@ -1904,7 +1904,7 @@
     }
 
     th {
-      background-color: #f1f1f1;
+      backilogramsround-color: #f1f1f1;
       font-weight: 600;
       font-size: 0.85rem;
       color: #333;
@@ -1912,7 +1912,7 @@
 
     .total-row {
       font-weight: bold;
-      background-color: #f0f0f0;
+      backilogramsround-color: #f0f0f0;
     }
 
     /* Mobile adjustment */
@@ -2218,9 +2218,9 @@
             )
                 .map((row) => {
                     const cantidad = row.querySelector(".cantidad")?.value || "";
-                    const unidad = row.querySelector(".unidad")?.value || "";
+                    const unit = row.querySelector(".unit")?.value || "";
                     const nombre = row.querySelector(".ingrediente")?.value || "";
-                    return `${cantidad}${unidad} ${nombre}`;
+                    return `${cantidad}${unit} ${nombre}`;
                 })
                 .filter((str) => str.trim() !== "");
 
@@ -2270,22 +2270,22 @@
 
             const match = valor.match(/^(\d+(?:\.\d+)?)([a-zA-Z]+)?\s+(.+)$/);
             const cantidad = match ? match[1] : "";
-            const unidad = match ? match[2] : "unidad";
+            const unit = match ? match[2] : "unit";
             const nombre = match ? match[3] : valor;
 
             row.innerHTML = `
     <input type="number" value="${cantidad}" placeholder="Cantidad" class="cantidad w-20 px-2 py-1 border border-gray-300 rounded text-sm" min="0" step="0.1">
-    <select class="unidad w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-      <option value="g" ${unidad === "g" ? "selected" : ""}>g</option>
-      <option value="kg" ${unidad === "kg" ? "selected" : ""}>kg</option>
-      <option value="ml" ${unidad === "ml" ? "selected" : ""}>ml</option>
-      <option value="litro" ${unidad === "litro" ? "selected" : ""
-                }>litro</option>
-      <option value="unidad" ${unidad === "unidad" ? "selected" : ""
-                }>unidad</option>
-      <option value="taza" ${unidad === "taza" ? "selected" : ""}>taza</option>
-      <option value="cucharada" ${unidad === "cucharada" ? "selected" : ""
-                }>cucharada</option>
+    <select class="unit w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+      <option value="gr" ${unit === "gr" ? "selected" : ""}>gr</option>
+      <option value="kilograms" ${unit === "kilograms" ? "selected" : ""}>kilograms</option>
+      <option value="milliliter" ${unit === "milliliter" ? "selected" : ""}>ml</option>
+      <option value="liter" ${unit === "liter" ? "selected" : ""
+                }>liter</option>
+      <option value="unit" ${unit === "unit" ? "selected" : ""
+                }>unit</option>
+      <option value="cup" ${unit === "cup" ? "selected" : ""}>cup</option>
+      <option value="tablespoon" ${unit === "tablespoon" ? "selected" : ""
+                }>tablespoon</option>
     </select>
     <input type="text" value="${nombre}" placeholder="Nombre del ingrediente" class="ingrediente flex-1 px-2 py-1 border border-gray-300 rounded text-sm">
     <button type="button" class="remove-ingredient text-red-500 hover:text-red-700 px-2">
