@@ -9,7 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* Animaciones y estilos base */
         .fade-in {
@@ -74,11 +73,7 @@
                 padding-right: 0.75rem;
                 font-size: 0.85rem;
             }
-        }
-        @media print {
-          .page-break { page-break-before: always; }
-        }
-        
+        }       
         @media screen and (min-width: 768px) {
             .container {
                 max-width: 768px;
@@ -176,7 +171,7 @@
                         <button
                     class="nav-btn px-6 py-3 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium text-left sm:text-center"
                     data-tab="analisisAlimentos">
-                    <i class="fas fa-chart-bar mr-2"></i>Analisis Nutricional
+                    <i class="fas fa-laptop-house"></i>Analisis Nutricional
                 </button>
             </div>
         </div>
@@ -643,7 +638,7 @@
       <i class="fas fa-chart-line mr-2"></i>Analizar Nutrientes
     </button>
 
-    <!-- Contenedor de resultados para análisis y PDF -->
+    <!-- Contenedor de resultados para análisis -->
     <div id="contenedorAnalisis" class="mt-6">
       <div id="resultadoNutricional" class="mt-4"></div>
 
