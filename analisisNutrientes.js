@@ -39,7 +39,7 @@ const NOMBRES_NUTRIENTES = {
 function traducirIngrediente(ing) {
   return ing
     .toLowerCase()
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/vegetal/g, "vegetable")
     .replace(/pollo/g, "chicken")
     .replace(/arroz/g, "rice")
@@ -52,16 +52,50 @@ function traducirIngrediente(ing) {
     .replace(/platano/g, "banana")
     .replace(/tomate/g, "tomato")
     .replace(/papa/g, "potato")
-    .replace(/aceite/g, "oil");
+    .replace(/aceite/g, "oil")
+    .replace(/carne/g, "meat")
+    .replace(/res/g, "beef")
+    .replace(/cerdo/g, "pork")
+    .replace(/pescado/g, "fish")
+    .replace(/atun/g, "tuna")
+    .replace(/zanahoria/g, "carrot")
+    .replace(/cebolla/g, "onion")
+    .replace(/ajo/g, "garlic")
+    .replace(/lenteja/g, "lentil")
+    .replace(/frijol/g, "bean")
+    .replace(/garbanzo/g, "chickpea")
+    .replace(/espinaca/g, "spinach")
+    .replace(/brocoli/g, "broccoli")
+    .replace(/calabaza/g, "pumpkin")
+    .replace(/pepino/g, "cucumber")
+    .replace(/pimiento/g, "pepper")
+    .replace(/fresa/g, "strawberry")
+    .replace(/mora/g, "blackberry")
+    .replace(/piña/g, "pineapple")
+    .replace(/naranja/g, "orange")
+    .replace(/limon/g, "lemon")
+    .replace(/mandarina/g, "tangerine")
+    .replace(/sandia/g, "watermelon")
+    .replace(/uva/g, "grape")
+    .replace(/yuca/g, "cassava")
+    .replace(/camote/g, "sweet potato")
+    .replace(/maiz/g, "corn")
+    .replace(/harina/g, "flour")
+    .replace(/galleta/g, "cookie")
+    .replace(/queso/g, "cheese")
+    .replace(/yogur/g, "yogurt")
+    .replace(/mantequilla/g, "butter")
+    .replace(/miel/g, "honey")
+    .replace(/cereal/g, "cereal");
 }
 
 function cargarRecetasAnalisis() {
   const select = document.getElementById("selectRecetaAnalisis");
   if (!SHEETS_DATA || !Array.isArray(SHEETS_DATA.recetas)) return;
 
-  const solidas = SHEETS_DATA.recetas.filter(r => r.Tipo === "Solido");
+  const recetas = SHEETS_DATA.recetas.filter(r => r.Tipo === "Solido" || r.Tipo === "Bebida");
   select.innerHTML = '<option value="">Selecciona una receta...</option>' +
-    solidas.map(r => `<option value="${r.ID_Receta}">${r.Nombre}</option>`).join("");
+    recetas.map(r => `<option value="${r.ID_Receta}">${r.Nombre}</option>`).join("");
 }
 
 async function analizarRecetaNutricion() {
