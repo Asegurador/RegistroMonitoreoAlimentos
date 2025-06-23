@@ -169,6 +169,11 @@
                     data-tab="estadisticas">
                     <i class="fas fa-chart-bar mr-2"></i>Estadísticas
                 </button>
+                        <button
+                    class="nav-btn px-6 py-3 border-b-2 border-transparent text-gray-600 hover:text-blue-600 font-medium text-left sm:text-center"
+                    data-tab="analisis">
+                    <i class="fas fa-chart-bar mr-2"></i>Analisis Nutricional
+                </button>
             </div>
         </div>
     </nav>
@@ -614,7 +619,26 @@
                 </div>
             </div>
         </div>
-    </main>
+     
+
+  <!-- 🔬 Análisis de Alimentos -->
+  <div id="analisis" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold mb-4">🔬 Análisis Nutricional por Receta</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Selecciona una receta:</label>
+                        <select id="selectRecetaAnalisis" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">Cargando recetas...</option>
+                        </select>
+                    </div>
+                    <button onclick="analizarRecetaNutricion()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <i class="fas fa-chart-line mr-2"></i>Analizar Nutrientes
+                    </button>
+                    <div id="resultadoNutricional" class="mt-6"></div>
+                    <canvas id="graficoNutricional" class="mt-4 w-full max-w-2xl mx-auto hidden"></canvas>
+                </div>
+            </main>
+
 
     <!-- 🔧 MODAL PARA EDITAR RECETA (RESPONSIVE Y DINÁMICO) -->
     <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center px-4">
