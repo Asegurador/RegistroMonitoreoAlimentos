@@ -193,7 +193,6 @@ function mostrarGraficoNutricional(total) {
 
 // Exportar como PDF
 function exportarAnalisisPDF() {
-  const contenedor = document.getElementById("contenedorAnalisis");
 
   const opt = {
     margin: 0.3,
