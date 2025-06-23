@@ -2403,41 +2403,45 @@
                 .join("");
         }
 
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      // Cambiar pestaña activa
-      document.querySelectorAll('.nav-btn').forEach(b => {
-        b.classList.remove('active', 'border-blue-500', 'text-blue-600');
-        b.classList.add('border-transparent', 'text-gray-600');
-      });
-
-      btn.classList.add('active', 'border-blue-500', 'text-blue-600');
-      btn.classList.remove('border-transparent', 'text-gray-600');
-
-      // Mostrar el tab correspondiente
-      const selectedTab = btn.getAttribute('data-tab');
-      document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.add('hidden');
-      });
-      document.getElementById(selectedTab).classList.remove('hidden');
-
-      // ✅ Refrescar contenido interno del tab dinámicamente
-      switch (selectedTab) {
-        case 'dashboard':
-          renderDashboard(); // tu función que vuelve a cargar datos
-          break;
-        case 'recetas':
-          renderRecetas(); // vuelve a llenar la tabla o formulario de recetas
-          break;
-        case 'registro':
-          resetFormularioRegistro(); // limpia y prepara el formulario
-          break;
-        case 'estadisticas':
-          prepararEstadisticas(); // prepara la vista de estadísticas
-          break;
-      }
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Cambiar pestaña activa
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.remove('active', 'border-blue-500', 'text-blue-600');
+      b.classList.add('border-transparent', 'text-gray-600');
     });
+
+    btn.classList.add('active', 'border-blue-500', 'text-blue-600');
+    btn.classList.remove('border-transparent', 'text-gray-600');
+
+    // Mostrar el tab correspondiente
+    const selectedTab = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.add('hidden');
+    });
+    document.getElementById(selectedTab).classList.remove('hidden');
+
+    // ✅ Refrescar contenido interno del tab dinámicamente
+    switch (selectedTab) {
+      case 'dashboard':
+        renderDashboard();
+        break;
+      case 'recetas':
+        renderRecetas();
+        break;
+      case 'registro':
+        resetFormularioRegistro();
+        break;
+      case 'estadisticas':
+        prepararEstadisticas();
+        break;
+      case 'analisisAlimentos':
+        cargarRecetasAnalisis(); // ✅ carga el select cuando entras
+        break;
+    }
   });
+});
+
 
   console.log("✅ Aplicación de Gestión de Recetas y Registros cargada correctamente");
 </script>
